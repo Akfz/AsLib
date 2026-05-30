@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "aslib",
+  "version": "${version}",
+  "name": "aslib",
+  "description": "",
+  "authors": ["Akaize, SweetB1ans"],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/aslib/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "n.paradox.aslib.AsLib"
+    ]
+  },
+  "mixins": [
+    "aslib.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "${minecraft_version}"
+  }
+}

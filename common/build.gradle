@@ -1,0 +1,18 @@
+plugins {
+    id 'fabric-loom'
+}
+
+base {
+    archivesName = "${project.archives_base_name}-common"
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://maven.minecraftforge.net/' }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
+    annotationProcessor "org.spongepowered:mixin:${project.mixin_version}:processor"
+}

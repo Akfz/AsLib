@@ -1,0 +1,62 @@
+allprojects {
+    apply plugin: 'java'
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    version = project.mod_version
+    group = project.maven_group
+}
+
+subprojects {
+    tasks.processResources {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        it.options.encoding = 'UTF-8'
+        it.options.release = 17
+    }
+
+    if (project.name != 'common') {
+        configurations {
+            embed
+            implementation.extendsFrom(embed)
+        }
+
+        dependencies {
+            implementation project(path: ':common', configuration: 'namedElements')
+        }
+
+        sourceSets {
+            main {
+                java {
+                    srcDirs += [project(':common').file("src/main/java")]
+                }
+                resources {
+                    srcDirs += [project(':common').file("src/main/resources")]
+                }
+            }
+        }
+
+        jar {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+            from {
+                configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
+            }
+
+            destinationDirectory.set(file("${rootProject.layout.buildDirectory.get().asFile}/libs"))
+
+            archiveFileName = "${project.name}-${project.version}.jar"
+
+            if (file("LICENSE").exists()) {
+                from("LICENSE") {
+                    rename { "${it}_${project.base.archivesName.get()}" }
+                }
+            }
+        }
+    }
+}
