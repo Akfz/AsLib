@@ -2,21 +2,21 @@ package n.paradox.aslib.datagen.block.blockstate;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 //Генерирует blockstate с поворотами (x,y)
 public class RotatableBlockStateVariant implements BlockStateVariant {
     private final String key;
-    private final Identifier modelId;
+    private final ResourceLocation modelId;
     private final int rotX;
     private final int rotY;
     private final boolean uvLock;
 
-    public RotatableBlockStateVariant(String key, Identifier modelId, int rotY) {
+    public RotatableBlockStateVariant(String key, ResourceLocation modelId, int rotY) {
         this(key, modelId, 0, rotY, false);
     }
 
-    public RotatableBlockStateVariant(String key, Identifier modelId, int rotX, int rotY, boolean uvLock) {
+    public RotatableBlockStateVariant(String key, ResourceLocation modelId, int rotX, int rotY, boolean uvLock) {
         this.key = key;
         this.modelId = modelId;
         this.rotX = normalizeRotation(rotX);

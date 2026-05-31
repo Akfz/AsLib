@@ -1,45 +1,49 @@
 package n.paradox.aslib.resourcepack;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.resource.*;
-import net.minecraft.resource.featuretoggle.FeatureSet;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.packs.PackResources;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.repository.PackRepository;
+import net.minecraft.server.packs.repository.PackSource;
+import net.minecraft.world.flag.FeatureFlagSet;
 
 //Добавляет ресурс паки в клиент(P.s только в клиент, если понадобится обновлю до сервера)
 public final class AddResourcePack {
-    public static void add(ResourcePackManager manager, ResourcePack pack, Text description,
-                           String id, Text displayName, boolean alwaysEnabled,
-                           ResourcePackProfile.InsertionPosition pos, boolean pinned, ResourcePackSource source) {
+    public static void add(PackRepository manager, PackResources pack, Component description,
+                           String id, Component displayName, boolean alwaysEnabled,
+                           Pack.Position pos, boolean pinned, PackSource source) {
 
         registerInternal(manager, id, displayName, alwaysEnabled, pos, pinned, source, description, (name) -> pack);
     }
 
-    public static void addFRP(ResourcePackManager manager, FileResourcePack frp, Text description,
-                              boolean alwaysEnabled, ResourcePackProfile.InsertionPosition pos,
-                              boolean pinned, ResourcePackSource source) {
+    public static void addFRP(PackRepository manager, FileResourcePack frp, Component description,
+                              boolean alwaysEnabled,  Pack.Position pos,
+                              boolean pinned, PackSource source) {
 
-        registerInternal(manager, frp.getSimpleNamespace(), Text.of(frp.getPack().getName()),
+        registerInternal(manager, frp.getSimpleNamespace(), Component.literal(frp.getPack().packId()),
                 alwaysEnabled, pos, pinned, source, description, (name) -> frp.getPack());
     }
 
-    private static void registerInternal(ResourcePackManager manager, String id, Text name,
-                                         boolean alwaysEnabled, ResourcePackProfile.InsertionPosition pos,
-                                         boolean pinned, ResourcePackSource source, Text description,
-                                         ResourcePackProfile.PackFactory factory) {
+    private static void registerInternal(PackRepository manager, String id, Component name,
+                                         boolean alwaysEnabled,  Pack.Position pos,
+                                         boolean pinned, PackSource source, Component description,
+                                         Pack.ResourcesSupplier factory) {
 
         if (manager instanceof ResourcePackExpander r) {
             r.addProvider(profileAdder -> {
-                int currentFormat = SharedConstants.getGameVersion().getResourceVersion(ResourceType.CLIENT_RESOURCES);
+                int currentFormat = SharedConstants.getCurrentVersion().getPackVersion(PackType.CLIENT_RESOURCES);
 
-                ResourcePackProfile.Metadata metadata = new ResourcePackProfile.Metadata(
+                Pack.Info metadata = new Pack.Info(
                         description,
                         currentFormat,
-                        FeatureSet.empty()
+                        FeatureFlagSet.of()
                 );
 
-                ResourcePackProfile profile = ResourcePackProfile.of(
+                Pack profile = Pack.create(
                         id, name, alwaysEnabled, factory, metadata,
-                        ResourceType.CLIENT_RESOURCES, pos, pinned, source
+                        PackType.CLIENT_RESOURCES, pos, pinned, source
                 );
 
                 profileAdder.accept(profile);

@@ -1,10 +1,10 @@
 package n.paradox.aslib.register;
 
 import n.paradox.aslib.datagen.sound.SoundDataEntry;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,11 +13,11 @@ import java.util.*;
 // регистрирует звуки :/
 // создавать instance и передавать в него списки, после register, добавить ничего нельзя, но можно взять id(зарегистрированные)
 public final class SoundRegistry implements IRegistry {
-    private final Map<String, Identifier> registryMap = new HashMap<>(); //String - хелпер, он НЕ влияет на реггер, Identifier id звука (аля "aslib:test")
+    private final Map<String, ResourceLocation> registryMap = new HashMap<>(); //String - хелпер, он НЕ влияет на реггер, ResourceLocation id звука (аля "aslib:test")
     private boolean isAllowToChange = true;
     private static final Logger logger = LoggerFactory.getLogger("ASLib - SoundRegistry");
 
-    public Map<String, Identifier> getRegistryMap() {
+    public Map<String, ResourceLocation> getRegistryMap() {
         return Collections.unmodifiableMap(this.registryMap);
     }
 
@@ -39,21 +39,21 @@ public final class SoundRegistry implements IRegistry {
     public void register() {
         isAllowToChange = false;
 
-        for (Identifier i : registryMap.values()) {
+        for (ResourceLocation i : registryMap.values()) {
             if (i == null) {
-                logger.error("REGISTER -> NULL IDENTIFIER, SKIPPED");
+                logger.error("REGISTER -> NULL ResourceLocation, SKIPPED");
                 continue;
             }
-            Registry.register(Registries.SOUND_EVENT, i, SoundEvent.of(i));
+            Registry.register(BuiltInRegistries.SOUND_EVENT, i, SoundEvent.createVariableRangeEvent(i));
         }
     }
 
-    public void addIdentifier(String helperID, Identifier id) {
+    public void addIdentifier(String helperID, ResourceLocation id) {
         if (!isAllowToChange) return;
         if (id != null) {
             registryMap.put(helperID,id);
         } else {
-            logger.error("Register {} sound is failed, identifier is null", helperID);
+            logger.error("Register {} sound is failed, ResourceLocation is null", helperID);
         }
     }
 

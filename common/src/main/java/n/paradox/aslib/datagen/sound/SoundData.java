@@ -4,8 +4,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import n.paradox.aslib.datagen.api.DataSerializable;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,13 +14,18 @@ import java.util.List;
 public class SoundData extends DataSerializable {
     private final List<SoundDataEntry> entries = new ArrayList<>();
     public SoundData(String modId) {
-        super(new Identifier(modId, "sounds")); //.json сам генерирует
+        super(new ResourceLocation(modId, "sounds")); //.json сам генерирует
     }
 
     public void addEntry(SoundDataEntry entry) {
         if (entry != null) {
             this.entries.add(entry);
         }
+    }
+
+    @Override
+    public Path getPath() {
+        return null;
     }
 
     @Override
@@ -31,7 +37,7 @@ public class SoundData extends DataSerializable {
             JsonObject soundEventJson = new JsonObject();
             JsonArray soundsArray = new JsonArray();
 
-            for (Identifier soundFileId : entry.sounds()) {
+            for (ResourceLocation soundFileId : entry.sounds()) {
                 soundsArray.add(soundFileId.toString());
             }
 

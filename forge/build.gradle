@@ -7,6 +7,12 @@ base {
     archivesName = "${project.archives_base_name}-forge"
 }
 
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+}
+
+
 minecraft {
     mappings channel: 'official', version: "${project.minecraft_version}"
     copyIdeResources = true
@@ -44,45 +50,51 @@ minecraft {
     }
 }
 
-sourceSets.main.resources { srcDir 'src/generated/resources' }
-
 dependencies {
     minecraft "net.minecraftforge:forge:${project.forge_version}"
-
     annotationProcessor "org.spongepowered:mixin:${project.mixin_version}:processor"
+
+    compileOnly "io.github.llamalad7:mixinextras-common:0.4.1"
+    annotationProcessor "io.github.llamalad7:mixinextras-common:0.4.1"
+
+    implementation project(":common")
 }
 
 mixin {
+    add sourceSets.main, "aslib.refmap.json"
     config "aslib.mixins.json"
 }
 
-tasks.named('processResources', ProcessResources).configure {
-    var replaceProperties = [
-            mc_version: project.minecraft_version,
-            mod_id: 'aslib',
-            mod_name: 'ASLib',
-            mod_version: project.mod_version,
-            mod_authors: 'n.paradox',
-            mod_description: 'Library for structural resource packs'
-    ]
-    inputs.properties replaceProperties
-
-    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
-        expand replaceProperties + [project: project]
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+            srcDirs += project(':common').file("src/main/java")
+            srcDirs += project(':common').file("src/sharedMixins/java")
+            srcDirs += project(':common').file("src/generated/java")
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+            srcDirs += project(':common').file("src/main/resources")
+            srcDirs += project(':common').file("src/generated/resources")
+        }
     }
 }
 
 tasks.named('jar', Jar).configure {
+    from sourceSets.main.output
+
     manifest {
         attributes([
-                'Specification-Title'     : 'aslib',
-                'Specification-Vendor'    : 'n.paradox',
-                'Specification-Version'   : '1',
-                'Implementation-Title'    : project.name,
-                'Implementation-Version'  : project.jar.archiveVersion,
-                'Implementation-Vendor'   : 'n.paradox',
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                "Specification-Title"     : 'aslib',
+                "Specification-Vendor"    : 'n.paradox',
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : project.mod_version,
+                "Implementation-Vendor"   : 'n.paradox',
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
+
     finalizedBy 'reobfJar'
 }

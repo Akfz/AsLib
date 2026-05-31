@@ -3,10 +3,12 @@ package n.paradox.aslib.datagen.api;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -16,39 +18,99 @@ import java.util.List;
 public abstract class DataProvider {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-    private final List<DataSerializable> dataList = new ArrayList<>();
+    private final List<Serializable<?>> dataList = new ArrayList<>();
 
     protected abstract void registerDataSerializable();
 
-    protected final void add(DataSerializable data) {
+    protected final void add(Serializable<?> data) {
         if (data == null) {
             throw new IllegalArgumentException("DataSerializable cannot be null!");
         }
         this.dataList.add(data);
     }
 
+    private Path resolveSubprojectRoot() {
+        try {
+            Path classPath = Path.of(this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+
+            Path current = classPath;
+            while (current != null && !Files.exists(current.resolve("src"))) {
+                current = current.getParent();
+            }
+
+            if (current != null && Files.exists(current.resolve("src"))) {
+                return current;
+            }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return Path.of(System.getProperty("user.dir"));
+    }
+
     // запуск, вызывать единожды (если не было ошибок)
     public void run() {
         registerDataSerializable();
 
-        for (DataSerializable dataSerializable : dataList) {
-            Identifier identifier = dataSerializable.getPath();
-            Path rootPath = Path.of(System.getProperty("user.dir"), "src", "generated", "resources");
-            Path filePath = rootPath
-                    .resolve("assets")
-                    .resolve(identifier.getNamespace())
-                    .resolve(identifier.getPath() + ".json");
+        Path subprojectRoot = resolveSubprojectRoot();
+        Path rootPath = subprojectRoot.resolve(Path.of("src", "generated", "resources"));
+
+        System.out.println("Генерация ресурсов в подпроект: " + subprojectRoot.toAbsolutePath());
+
+        for (Serializable<?> serializable : dataList) {
+            Path filePath;
+
+            if (serializable.isSystem()) {
+                Path customPath = serializable.getPath();
+                if (customPath == null) {
+                    System.out.println("System path is null for serializable!");
+                    continue;
+                }
+
+                String pathStr = customPath.toString();
+                if (!pathStr.endsWith("." + serializable.getExtension())) {
+                    pathStr += "." + serializable.getExtension();
+                }
+                filePath = rootPath.resolve(pathStr);
+
+            } else {
+                ResourceLocation rl = serializable.getRLPath();
+
+                if (rl != null) {
+                    String folderType = serializable.isAsset() ? "assets" : "data";
+                    filePath = rootPath
+                            .resolve(folderType)
+                            .resolve(rl.getNamespace())
+                            .resolve(rl.getPath() + "." + serializable.getExtension());
+                } else {
+                    Path fallbackPath = serializable.getPath();
+                    if (fallbackPath == null) {
+                        System.out.println("Both RLPath and Path are null!");
+                        continue;
+                    }
+                    String pathStr = fallbackPath.toString();
+                    if (!pathStr.endsWith("." + serializable.getExtension())) {
+                        pathStr += "." + serializable.getExtension();
+                    }
+                    filePath = rootPath.resolve(pathStr);
+                }
+            }
 
             try {
                 Files.createDirectories(filePath.getParent());
+                Object output = serializable.serialize();
 
-                JsonElement jsonElement = dataSerializable.serialize();
-                if (jsonElement == null) {
-                    System.out.println("jsonElement from : " + identifier + " is null");
+                if (output == null) {
+                    Object identifier = serializable.getRLPath() != null ? serializable.getRLPath() : serializable.getPath();
+                    System.out.println("Serialized output from : " + identifier + " is null");
                     continue;
                 }
+
                 try (FileWriter writer = new FileWriter(filePath.toFile())) {
-                    GSON.toJson(jsonElement,writer);
+                    if (output instanceof JsonElement jsonElement) {
+                        GSON.toJson(jsonElement, writer);
+                    } else {
+                        writer.write(output.toString());
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();

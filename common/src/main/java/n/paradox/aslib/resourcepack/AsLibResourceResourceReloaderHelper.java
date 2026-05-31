@@ -1,6 +1,6 @@
 package n.paradox.aslib.resourcepack;
 
-import net.minecraft.resource.ResourcePack;
+import net.minecraft.server.packs.PackResources;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -11,12 +11,12 @@ import java.util.Map;
 public final class AsLibResourceResourceReloaderHelper {
     private static Map<String, ResourceReloadListener> resourceReloadListenerMap = new HashMap<>();
 
-    public static void register(ResourcePack pack, ResourceReloadListener listener) {
-        resourceReloadListenerMap.put(pack.getName(),listener);
+    public static void register(PackResources pack, ResourceReloadListener listener) {
+        resourceReloadListenerMap.put(pack.packId(),listener);
     }
-    public static void unRegister(ResourcePack pack) {
+    public static void unRegister(PackResources pack) {
         if (pack != null) {
-            resourceReloadListenerMap.remove(pack.getName());
+            resourceReloadListenerMap.remove(pack.packId());
         }
     }
     public static Map<String, ResourceReloadListener> getReloadMap() {
@@ -24,8 +24,8 @@ public final class AsLibResourceResourceReloaderHelper {
     }
 
     @Nullable
-    public static ResourceReloadListener getListener(ResourcePack pack) {
+    public static ResourceReloadListener getListener(PackResources pack) {
         if (pack == null) return null;
-        return resourceReloadListenerMap.get(pack.getName());
+        return resourceReloadListenerMap.get(pack.packId());
     }
 }

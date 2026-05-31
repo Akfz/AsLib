@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "aslib",
+  "version": "1.0-SNAPSHOT",
+  "name": "ASLib",
+  "description": "Library for structural resource packs",
+  "license": "MIT",
+  "icon": "assets/aslib/icon.png",
+  "environment": "*",
+  "authors": [
+    "Akaize",
+    "SweetB1ans"
+  ],
+  "contact": {
+    "homepage": "",
+    "sources": ""
+  },
+  "entrypoints": { "main": [ "n.paradox.aslib.fabric.ASLibFabricInitializer" ] },
+  "mixins": [
+    "aslib.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "minecraft": "1.20.1"
+  }
+}

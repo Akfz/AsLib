@@ -1,9 +1,9 @@
 package n.paradox.aslib.register;
 
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +37,7 @@ public final class ItemRegistry implements IRegistry {
                 continue;
             }
             if (si instanceof RegisterObject i) {
-                Registry.register(Registries.ITEM, new Identifier(i.getModId(), i.getRegisterName()), si);
+                Registry.register(BuiltInRegistries.ITEM, new ResourceLocation(i.getModId(), i.getRegisterName()), si);
             } else {
                 logger.error("REGISTER -> ITEM NOT INSTANCE OF RegisterObject, SKIPPED");
             }

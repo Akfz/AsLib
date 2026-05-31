@@ -1,8 +1,8 @@
 package n.paradox.aslib.resourcepack;
 
-import net.minecraft.resource.ResourcePackProvider;
+import net.minecraft.server.packs.repository.RepositorySource;
 
 public interface ResourcePackExpander {
-    void addProvider(ResourcePackProvider provider);
+    void addProvider(RepositorySource provider);
 }
 

@@ -3,8 +3,9 @@ package n.paradox.aslib.datagen.block.blockstate;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import n.paradox.aslib.datagen.api.DataSerializable;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +13,8 @@ import java.util.List;
 public class BlockStateData extends DataSerializable {
     private final List<BlockStateVariant> variants = new ArrayList<>();
 
-    public BlockStateData(Identifier blockId) {
-        super(new Identifier(blockId.getNamespace(), "blockstates/" + blockId.getPath()));
+    public BlockStateData(ResourceLocation blockId) {
+        super(new ResourceLocation(blockId.getNamespace(), "blockstates/" + blockId.getPath()));
     }
 
     public BlockStateData addVariant(BlockStateVariant variant) {
@@ -21,6 +22,11 @@ public class BlockStateData extends DataSerializable {
             this.variants.add(variant);
         }
         return this;
+    }
+
+    @Override
+    public Path getPath() {
+        return null;
     }
 
     @Override

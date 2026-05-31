@@ -1,20 +1,21 @@
 package n.paradox.aslib.datagen.api;
 
 import com.google.gson.JsonElement;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 //Класс для генерации файла и пути
-public abstract class DataSerializable {
-    private final Identifier path;
+public abstract class DataSerializable implements Serializable<JsonElement> {
+    private final ResourceLocation path;
 
-    public DataSerializable(Identifier path) {
+    public DataSerializable(ResourceLocation path) {
         this.path = path;
     }
 
-    public Identifier getPath() {
+    @Override
+    public ResourceLocation getRLPath() {
         return this.path;
     }
 
-    // реализация сериализации
+    @Override // реализация сериализации
     public abstract JsonElement serialize();
 }

@@ -1,3 +1,12 @@
+buildscript {
+    repositories {
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+    }
+    dependencies {
+        classpath "org.spongepowered:mixingradle:${project.mixingradle_version}"
+    }
+}
+
 allprojects {
     apply plugin: 'java'
 
@@ -12,7 +21,7 @@ allprojects {
 
 subprojects {
     tasks.processResources {
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 
     tasks.withType(JavaCompile).configureEach {
@@ -24,21 +33,6 @@ subprojects {
         configurations {
             embed
             implementation.extendsFrom(embed)
-        }
-
-        dependencies {
-            implementation project(path: ':common', configuration: 'namedElements')
-        }
-
-        sourceSets {
-            main {
-                java {
-                    srcDirs += [project(':common').file("src/main/java")]
-                }
-                resources {
-                    srcDirs += [project(':common').file("src/main/resources")]
-                }
-            }
         }
 
         jar {
@@ -56,6 +50,19 @@ subprojects {
                 from("LICENSE") {
                     rename { "${it}_${project.base.archivesName.get()}" }
                 }
+            }
+        }
+
+        tasks.named('processResources', ProcessResources).configure {
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+            if (project.name == 'forge') {
+                exclude 'fabric.mod.json'
+            }
+
+            if (project.name == 'fabric') {
+                exclude 'META-INF/mods.toml'
+                exclude 'pack.mcmeta'
             }
         }
     }

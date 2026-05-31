@@ -1,10 +1,11 @@
 package n.paradox.aslib.resourcepack;
 
-import net.minecraft.resource.InputSupplier;
-import net.minecraft.resource.ResourcePack;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.resource.metadata.ResourceMetadataReader;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackResources;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
+import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 //Простой пример для работы с ресурс паками вне кода (т.е src/ч/resources)
-public class SimpleFileResourcePack implements ResourcePack,FileResourcePack {
+public class SimpleFileResourcePack implements PackResources,FileResourcePack {
     private final String pack_name;
     private final String namespace;
     private final Set<String> known_namespaces;
@@ -60,34 +61,34 @@ public class SimpleFileResourcePack implements ResourcePack,FileResourcePack {
     }
 
     @Override
-    public ResourcePack getPack() {
+    public PackResources getPack() {
         return this;
     }
 
     @Override
-    public InputSupplier<InputStream> openRoot(String... segments) {
+    public @Nullable IoSupplier<InputStream> getRootResource(String... strings) {
         return null;
     }
 
     @Override
-    public InputSupplier<InputStream> open(ResourceType type, Identifier id) {
-        if (!id.getNamespace().equals(namespace) || type != ResourceType.CLIENT_RESOURCES) {
+    public @Nullable IoSupplier<InputStream> getResource(PackType packType, ResourceLocation resourceLocation) {
+        if (!resourceLocation.getNamespace().equals(namespace) || packType != PackType.CLIENT_RESOURCES) {
             return null;
         }
 
-        String path = id.getPath();
+        String path = resourceLocation.getPath();
         Path filePath = cacheFiles.get(path);
 
         if (filePath != null && Files.exists(filePath)) {
-            return InputSupplier.create(filePath);
+            return IoSupplier.create(filePath);
         }
 
         return null;
     }
 
     @Override
-    public void findResources(ResourceType type, String namespace, String prefix, ResultConsumer consumer) {
-        if (!namespace.equals(this.namespace) || type != ResourceType.CLIENT_RESOURCES) {
+    public void listResources(PackType packType, String namespace, String prefix, ResourceOutput resourceOutput) {
+        if (!namespace.equals(this.namespace) || packType != PackType.CLIENT_RESOURCES) {
             return;
         }
 
@@ -96,24 +97,24 @@ public class SimpleFileResourcePack implements ResourcePack,FileResourcePack {
             Path filePath = entry.getValue();
 
             if (path.startsWith(prefix)) {
-                Identifier id = Identifier.of(namespace, path);
-                consumer.accept(id, InputSupplier.create(filePath));
+                ResourceLocation id = new ResourceLocation(namespace, path);
+                resourceOutput.accept(id, IoSupplier.create(filePath));
             }
         }
     }
 
     @Override
-    public Set<String> getNamespaces(ResourceType type) {
-        return (type == ResourceType.CLIENT_RESOURCES) ? known_namespaces : Set.of();
+    public Set<String> getNamespaces(PackType packType) {
+        return (packType == PackType.CLIENT_RESOURCES) ? known_namespaces : Set.of();
     }
 
     @Override
-    public <T> T parseMetadata(ResourceMetadataReader<T> metaReader) {
+    public @Nullable <T> T getMetadataSection(MetadataSectionSerializer<T> metadataSectionSerializer) throws IOException {
         return null;
     }
 
     @Override
-    public String getName() {
+    public String packId() {
         return pack_name;
     }
 

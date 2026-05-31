@@ -1,13 +1,13 @@
 package n.paradox.aslib.register;
 
 import n.paradox.aslib.register.util.FastBlockItem;
-import net.minecraft.block.Block;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +26,7 @@ public final class BlockRegistry implements IRegistry {
             Optional<BlockItem> blockItem,
             Optional<BlockEntityExpander> blockEntity
     ) {}
-    public record BlockEntityExpander(BlockEntityType<?> blockEntityType, Identifier blockEntityID){}
+    public record BlockEntityExpander(BlockEntityType<?> blockEntityType, ResourceLocation blockEntityID){}
 
     private static final Logger logger = LoggerFactory.getLogger("ASLib - BlockRegistry");
 
@@ -62,23 +62,23 @@ public final class BlockRegistry implements IRegistry {
             }
             String nameBlock = regBlock.getRegisterName();
             String idBlock=regBlock.getModId();
-            Identifier id = new Identifier(idBlock, nameBlock);
-            Registry.register(Registries.BLOCK, id, block);
+            ResourceLocation id = new ResourceLocation(idBlock, nameBlock);
+            Registry.register(BuiltInRegistries.BLOCK, id, block);
 
             group.blockEntity().ifPresent(blockEntityExpander ->
-                    Registry.register(Registries.BLOCK_ENTITY_TYPE, blockEntityExpander.blockEntityID(), blockEntityExpander.blockEntityType()));
+                    Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, blockEntityExpander.blockEntityID(), blockEntityExpander.blockEntityType()));
 
             if (group.blockItem().isPresent()) {
                 BlockItem customItem = group.blockItem().get();
 
                 if (customItem instanceof RegisterObject regItem) {
-                    Registry.register(Registries.ITEM, new Identifier(regItem.getModId(), regItem.getRegisterName()), customItem);
+                    Registry.register(BuiltInRegistries.ITEM, new ResourceLocation(regItem.getModId(), regItem.getRegisterName()), customItem);
                 } else {
-                    Registry.register(Registries.ITEM, new Identifier(idBlock, nameBlock + "_item"), customItem);
+                    Registry.register(BuiltInRegistries.ITEM, new ResourceLocation(idBlock, nameBlock + "_item"), customItem);
                 }
             } else {
-                FastBlockItem autoItem = new FastBlockItem(block, new Item.Settings(), nameBlock + "_item", idBlock);
-                Registry.register(Registries.ITEM, new Identifier(autoItem.getModId(), autoItem.getRegisterName()), autoItem);
+                FastBlockItem autoItem = new FastBlockItem(block, new Item.Properties(), nameBlock + "_item", idBlock);
+                Registry.register(BuiltInRegistries.ITEM, new ResourceLocation(autoItem.getModId(), autoItem.getRegisterName()), autoItem);
             }
         }
     }
