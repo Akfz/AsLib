@@ -2,9 +2,11 @@
   "required": true,
   "package": "n.paradox.aslib.mixin",
   "compatibilityLevel": "JAVA_17",
+  "plugin": "n.paradox.aslib.mixin.plugin.AsLibMixinPlugin",
   "mixins": [
-    "MinecraftClientMixin",
-    "ResourcePackManagerMixin"
+    "client.MinecraftClientMixin",
+    "client.ResourcePackManagerMixin",
+    "CommandsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

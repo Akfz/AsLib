@@ -1,4 +1,4 @@
-package n.paradox.aslib.mixin;
+package n.paradox.aslib.mixin.client;
 
 import n.paradox.aslib.resourcepack.ResourcePackExpander;
 import net.minecraft.server.packs.repository.Pack;
@@ -10,10 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Mixin(PackRepository.class)
 public class ResourcePackManagerMixin implements ResourcePackExpander {
@@ -27,16 +24,36 @@ public class ResourcePackManagerMixin implements ResourcePackExpander {
     @Inject(method = "discoverAvailable", at = @At("RETURN"), cancellable = true)
     private void aslib$injectAdditionalProviders(CallbackInfoReturnable<Map<String, Pack>> cir) {
         Map<String, Pack> originalMap = cir.getReturnValue();
-        Map<String, Pack> extendedMap = new java.util.TreeMap<>();
-
-        extendedMap.putAll(originalMap);
+        Map<String, Pack> extendedMap = new java.util.TreeMap<>(originalMap);
 
         for (RepositorySource provider : this.additionalProviders) {
-            provider.loadPacks(profile -> {
-                extendedMap.put(profile.getId(), profile);
-            });
+            provider.loadPacks(profile -> extendedMap.put(profile.getId(), profile));
         }
 
         cir.setReturnValue(Collections.unmodifiableMap(extendedMap));
+    }
+
+    @Inject(method = "rebuildSelected", at = @At("RETURN"), cancellable = true)
+    private void aslib$forceInjectRequiredPacks(Collection<String> collection, CallbackInfoReturnable<List<Pack>> cir) {
+        List<Pack> originalSelected = cir.getReturnValue();
+
+        List<Pack> extendedSelected = new ArrayList<>(originalSelected);
+        boolean modified = false;
+
+        for (RepositorySource provider : this.additionalProviders) {
+            List<Pack> customPacks = new ArrayList<>();
+            provider.loadPacks(customPacks::add);
+
+            for (Pack pack : customPacks) {
+                if (pack.isRequired() && !extendedSelected.contains(pack)) {
+                    pack.getDefaultPosition().insert(extendedSelected, pack, com.google.common.base.Functions.identity(), false);
+                    modified = true;
+                }
+            }
+        }
+
+        if (modified) {
+            cir.setReturnValue(List.copyOf(extendedSelected));
+        }
     }
 }

@@ -27,7 +27,7 @@ public final class AddResourcePack {
     }
 
     private static void registerInternal(PackRepository manager, String id, Component name,
-                                         boolean alwaysEnabled,  Pack.Position pos,
+                                         boolean alwaysEnabled, Pack.Position pos,
                                          boolean pinned, PackSource source, Component description,
                                          Pack.ResourcesSupplier factory) {
 
@@ -41,14 +41,36 @@ public final class AddResourcePack {
                         FeatureFlagSet.of()
                 );
 
+                PackSource finalSource = alwaysEnabled ? new PackSource() {
+                    @Override
+                    public Component decorate(Component packName) {
+                        return source.decorate(packName);
+                    }
+
+                    @Override
+                    public boolean shouldAddAutomatically() {
+                        return true;
+                    }
+                } : source;
+
+                boolean isFixed = alwaysEnabled || pinned;
+
                 Pack profile = Pack.create(
-                        id, name, alwaysEnabled, factory, metadata,
-                        PackType.CLIENT_RESOURCES, pos, pinned, source
+                        id,
+                        name,
+                        alwaysEnabled,
+                        factory,
+                        metadata,
+                        PackType.CLIENT_RESOURCES,
+                        pos,
+                        isFixed,
+                        finalSource
                 );
 
-                profileAdder.accept(profile);
+                if (profile != null) {
+                    profileAdder.accept(profile);
+                }
             });
         }
     }
 }
-

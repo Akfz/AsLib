@@ -1,4 +1,4 @@
-package n.paradox.aslib.mixin;
+package n.paradox.aslib.mixin.client;
 
 import n.paradox.aslib.resourcepack.AsLibResourceReloader;
 import net.minecraft.Util;
@@ -33,5 +33,7 @@ public class MinecraftClientMixin {
                 Util.ioPool(),
                 client
         );
+
+        System.err.println("MIXIN WORKED");
     }
 }

@@ -23,10 +23,12 @@ minecraft {
 
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
+            property 'forge.earlydisplay.enable', 'false'
 
             mods {
                 "aslib" {
                     source sourceSets.main
+                    source project(':common').sourceSets.main
                 }
             }
         }
@@ -57,7 +59,7 @@ dependencies {
     compileOnly "io.github.llamalad7:mixinextras-common:0.4.1"
     annotationProcessor "io.github.llamalad7:mixinextras-common:0.4.1"
 
-    implementation project(":common")
+    implementation project(path: ":common", configuration: "namedElements")
 }
 
 mixin {
@@ -69,7 +71,7 @@ sourceSets {
     main {
         java {
             srcDirs = ['src/main/java']
-            srcDirs += project(':common').file("src/main/java")
+            //srcDirs += project(':common').file("src/main/java")
             srcDirs += project(':common').file("src/sharedMixins/java")
             srcDirs += project(':common').file("src/generated/java")
         }

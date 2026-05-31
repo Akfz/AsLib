@@ -4,19 +4,16 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-//Регистрирует предметы (blockitem лучше через BlockRegistry), создавать instance и передавать в него списки
-//после register, добавить ничего нельзя, но можно взять instance(зарегистрированные)
+//Регистрирует предметы (blockitem лучше через BlockRegistry), можно создать instance (для закрытой регистрации)
+//но рекомендуется через AsLibRegistries, после register добавить ничего нельзя, но можно взять instance(зарегистрированные)
 public final class ItemRegistry implements IRegistry {
     private final Map<String, Item> registryMap = new HashMap<>(); //String - хелпер, он НЕ влияет на реггер, Предметы должны наследоваться RegisterObject
     private boolean isAllowToChange = true;
-    private static final Logger logger = LoggerFactory.getLogger("ASLib - ItemRegistry");
 
     public Map<String, Item> getRegistryMap() {
         return Collections.unmodifiableMap(this.registryMap);
@@ -29,17 +26,18 @@ public final class ItemRegistry implements IRegistry {
 
     @Override
     public void register() {
+        if (!isAllowToChange) return;
         isAllowToChange = false;
 
         for (Item si : registryMap.values()) {
             if (si == null) {
-                logger.error("REGISTER -> NULL ITEM, SKIPPED");
+                System.err.println("ASLib - ItemRegistry : REGISTER -> NULL ITEM, SKIPPED");
                 continue;
             }
             if (si instanceof RegisterObject i) {
                 Registry.register(BuiltInRegistries.ITEM, new ResourceLocation(i.getModId(), i.getRegisterName()), si);
             } else {
-                logger.error("REGISTER -> ITEM NOT INSTANCE OF RegisterObject, SKIPPED");
+                System.err.println("ASLib - ItemRegistry : REGISTER -> ITEM NOT INSTANCE OF RegisterObject, SKIPPED");
             }
         }
     }
@@ -49,14 +47,14 @@ public final class ItemRegistry implements IRegistry {
         if (item != null) {
             registryMap.put(helperID,item);
         } else {
-            logger.error("Register {} item is failed, item is null", helperID);
+            System.err.println("ASLib - ItemRegistry : Register " + helperID + " item is failed, item is null");
         }
     }
 
     public void removeItem(String helperID) {
         if (!isAllowToChange) return;
         if (registryMap.remove(helperID) == null) {
-            logger.error("Cant remove {} (item), because its not exist", helperID);
+            System.err.println("ASLib - ItemRegistry : Cant remove " + helperID + " (item), because its not exist");
         }
     }
 }
