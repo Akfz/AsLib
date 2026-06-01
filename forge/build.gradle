@@ -99,9 +99,6 @@ tasks.named('jar', Jar).configure {
     from sourceSets.main.output
     from project(':common').sourceSets.main.output
 
-    destinationDirectory.set(file("${project.layout.buildDirectory.get().asFile}/libs"))
-    archiveFileName = "${project.archives_base_name}-${project.mod_version}-forge.jar"
-
     manifest {
         attributes([
                 "Specification-Title"     : project.mod_id,

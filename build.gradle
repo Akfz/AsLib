@@ -11,7 +11,8 @@ allprojects {
     apply plugin: 'java'
 
     java {
-        toolchain.languageVersion = JavaLanguageVersion.of(17)
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     version = project.mod_version
@@ -19,52 +20,106 @@ allprojects {
 }
 
 subprojects {
+    tasks.processResources {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
     tasks.withType(JavaCompile).configureEach {
         it.options.encoding = 'UTF-8'
         it.options.release = 17
     }
 
-    if (project.name != 'common') {
-        configurations {
-            embed
-            implementation.extendsFrom(embed)
-        }
+    afterEvaluate {
+        def finalJarName = "${rootProject.archives_base_name}-${project.name}-${project.version}.jar"
 
-        tasks.named('jar', Jar).configure {
-            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-            from {
-                configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
-            }
-
-            destinationDirectory.set(file("${rootProject.layout.buildDirectory.get().asFile}/libs"))
-            archiveFileName = "${project.name}-${project.version}-dev.jar"
-
-            if (file("LICENSE").exists()) {
-                from("LICENSE") {
-                    rename { "${it}_${project.base.archivesName.get()}" }
-                }
-            }
-        }
-
-        tasks.named('processResources', ProcessResources).configure {
-            duplicatesStrategy = DuplicatesStrategy.INCLUDE
-
-            if (project.name == 'forge') {
-                exclude 'fabric.mod.json'
-                exclude 'quilt.mod.json'
-            }
-
-            if (project.name == 'neoforge') {
-                exclude 'fabric.mod.json'
-                exclude 'quilt.mod.json'
+        if (project.name != 'common') {
+            configurations {
+                embed
+                implementation.extendsFrom(embed)
             }
 
             if (project.name == 'fabric') {
-                exclude 'META-INF/mods.toml'
-                exclude 'quilt.mod.json'
-                exclude 'pack.mcmeta'
+                tasks.named('remapJar') { task ->
+                    task.archiveFileName = finalJarName
+                    task.from {
+                        configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
+                    }
+
+                    if (file("LICENSE").exists()) {
+                        task.from("LICENSE") {
+                            rename { "${it}_${project.base.archivesName.get()}" }
+                        }
+                    }
+                }
+            } else {
+                tasks.named('jar', Jar) { Jar task ->
+                    task.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+                    task.destinationDirectory.set(layout.buildDirectory.dir("libs"))
+                    task.archiveFileName = finalJarName
+
+                    task.from {
+                        configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
+                    }
+
+                    if (file("LICENSE").exists()) {
+                        task.from("LICENSE") {
+                            rename { "${it}_${project.base.archivesName.get()}" }
+                        }
+                    }
+                }
+            }
+
+            tasks.named('processResources', ProcessResources).configure {
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+                if (project.name == 'forge') {
+                    exclude 'fabric.mod.json'
+                }
+
+                if (project.name == 'neoforge') {
+                    exclude 'fabric.mod.json'
+                    exclude 'quilt.mod.json'
+                }
+
+                if (project.name == 'fabric') {
+                    exclude 'META-INF/mods.toml'
+                    exclude 'pack.mcmeta'
+                }
+            }
+        } else {
+            tasks.named('jar', Jar) { Jar task ->
+                task.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+                task.archiveFileName = finalJarName
             }
         }
     }
+}
+
+tasks.register('compileAll', Copy) {
+    group = 'build'
+    description = 'Compile and copy from all subprojects JAR in main build/libs'
+
+    subprojects.each { subproject ->
+        if (subproject.name == 'fabric') {
+            dependsOn subproject.tasks.matching { it.name == 'remapJar' }
+        } else {
+            dependsOn subproject.tasks.matching { it.name == 'jar' }
+        }
+    }
+
+    subprojects.each { subproject ->
+        if (subproject.name == 'common') {
+            from(subproject.layout.buildDirectory.dir("devlibs")) {
+                include "*.jar"
+            }
+        } else {
+            from(subproject.layout.buildDirectory.dir("libs")) {
+                include "*.jar"
+            }
+        }
+    }
+
+    into(layout.buildDirectory.dir("libs"))
+
+    outputs.upToDateWhen { false }
 }

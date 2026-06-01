@@ -60,7 +60,7 @@ tasks.named('processResources', ProcessResources).configure {
     }
 }
 
-jar {
+tasks.named('jar', Jar) { Jar task ->
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from sourceSets.main.output
+    task.from sourceSets.main.output
 }
