@@ -8,6 +8,9 @@ import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 import java.util.List;
 import java.util.Set;
 
+//В forge mixin нету разделение client и server, поэтому рекомендуется использовать этот плагин,
+//теперь mixin.client - клиент, а mixin.server - сервер. (без .client или .server - общее)
+// МОЖНО НЕ ИСПОЛЬЗОВАТЬ
 public class AsLibMixinPlugin implements IMixinConfigPlugin {
     private boolean isClientEnvironment = false;
 
