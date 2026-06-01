@@ -62,6 +62,5 @@ tasks.named('processResources', ProcessResources).configure {
 
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    exclude "n/paradox/aslib/mixin/**"
     from sourceSets.main.output
 }

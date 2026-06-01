@@ -11,8 +11,7 @@ allprojects {
     apply plugin: 'java'
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        toolchain.languageVersion = JavaLanguageVersion.of(17)
     }
 
     version = project.mod_version
@@ -20,10 +19,6 @@ allprojects {
 }
 
 subprojects {
-    tasks.processResources {
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    }
-
     tasks.withType(JavaCompile).configureEach {
         it.options.encoding = 'UTF-8'
         it.options.release = 17
@@ -35,7 +30,7 @@ subprojects {
             implementation.extendsFrom(embed)
         }
 
-        jar {
+        tasks.named('jar', Jar).configure {
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
             from {
@@ -43,8 +38,7 @@ subprojects {
             }
 
             destinationDirectory.set(file("${rootProject.layout.buildDirectory.get().asFile}/libs"))
-
-            archiveFileName = "${project.name}-${project.version}.jar"
+            archiveFileName = "${project.name}-${project.version}-dev.jar"
 
             if (file("LICENSE").exists()) {
                 from("LICENSE") {
@@ -58,10 +52,17 @@ subprojects {
 
             if (project.name == 'forge') {
                 exclude 'fabric.mod.json'
+                exclude 'quilt.mod.json'
+            }
+
+            if (project.name == 'neoforge') {
+                exclude 'fabric.mod.json'
+                exclude 'quilt.mod.json'
             }
 
             if (project.name == 'fabric') {
                 exclude 'META-INF/mods.toml'
+                exclude 'quilt.mod.json'
                 exclude 'pack.mcmeta'
             }
         }
