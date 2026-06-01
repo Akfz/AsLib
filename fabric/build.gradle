@@ -26,7 +26,6 @@ sourceSets {
     main {
         java {
             srcDirs = ['src/main/java']
-            //srcDirs += project(':common').file("src/main/java")
             srcDirs += project(':common').file("src/sharedMixins/java")
             srcDirs += project(':common').file("src/generated/java")
         }
@@ -34,6 +33,27 @@ sourceSets {
             srcDirs = ['src/main/resources']
             srcDirs += project(':common').file("src/main/resources")
             srcDirs += project(':common').file("src/generated/resources")
+        }
+    }
+}
+
+tasks.named('compileJava', JavaCompile) {
+    dependsOn project(':common').tasks.named('compileJava')
+
+    classpath += project(':common').sourceSets.main.output
+}
+
+loom {
+    runs {
+        client {
+            client()
+            runDir "run"
+        }
+    }
+    mods {
+        "${project.mod_id}" {
+            sourceSet sourceSets.main
+            sourceSet project(':common').sourceSets.main
         }
     }
 }
@@ -54,16 +74,8 @@ tasks.named('processResources', ProcessResources).configure {
     }
 }
 
-loom {
-    runs {
-        client {
-            client()
-            runDir "run"
-        }
-    }
-}
-
 tasks.named('jar', Jar).configure {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from sourceSets.main.output
+    from project(':common').sourceSets.main.output
 }

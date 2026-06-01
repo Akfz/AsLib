@@ -12,7 +12,6 @@ repositories {
     maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
 }
 
-
 minecraft {
     mappings channel: 'official', version: "${project.minecraft_version}"
     copyIdeResources = true
@@ -26,7 +25,7 @@ minecraft {
             property 'forge.earlydisplay.enable', 'false'
 
             mods {
-                "aslib" {
+                "${project.mod_id}" {
                     source sourceSets.main
                     source project(':common').sourceSets.main
                 }
@@ -34,20 +33,20 @@ minecraft {
         }
 
         client {
-            property 'mixin.config', 'aslib.mixins.json'
+            property 'mixin.config', "${project.mod_id}.mixins.json"
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
         }
 
         server {
-            property 'mixin.config', 'aslib.mixins.json'
+            property 'mixin.config', "${project.mod_id}.mixins.json"
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
         }
 
         data {
             workingDirectory project.file('run-data')
-            args '--mod', 'aslib', '--all', '--output', file('src/generated/resources/'), '--existing', project(':common').file('src/main/resources/')
+            args '--mod', "${project.mod_id}", '--all', '--output', file('src/generated/resources/'), '--existing', project(':common').file('src/main/resources/')
         }
     }
 }
@@ -63,15 +62,14 @@ dependencies {
 }
 
 mixin {
-    add sourceSets.main, "aslib.refmap.json"
-    config "aslib.mixins.json"
+    add sourceSets.main, "${project.mod_id}.refmap.json"
+    config "${project.mod_id}.mixins.json"
 }
 
 sourceSets {
     main {
         java {
             srcDirs = ['src/main/java']
-            //srcDirs += project(':common').file("src/main/java")
             srcDirs += project(':common').file("src/sharedMixins/java")
             srcDirs += project(':common').file("src/generated/java")
         }
@@ -83,18 +81,38 @@ sourceSets {
     }
 }
 
+tasks.named('compileJava', JavaCompile) {
+    dependsOn project(':common').tasks.named('compileJava')
+    classpath += project(':common').sourceSets.main.output
+
+    options.compilerArgs << "-AoutRefMapFile=${projectDir}/build/resources/main/${project.mod_id}.refmap.json"
+    options.compilerArgs << "-AoutMapFileWithMappings=true"
+}
+
+tasks.named('processResources', ProcessResources) {
+    from project(':common').sourceSets.main.resources
+}
+
 tasks.named('jar', Jar).configure {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     from sourceSets.main.output
+    from project(':common').sourceSets.main.output
+
+    destinationDirectory.set(file("${project.layout.buildDirectory.get().asFile}/libs"))
+    archiveFileName = "${project.archives_base_name}-${project.mod_version}-forge.jar"
 
     manifest {
         attributes([
-                "Specification-Title"     : 'aslib',
-                "Specification-Vendor"    : 'n.paradox',
+                "Specification-Title"     : project.mod_id,
+                "Specification-Vendor"    : project.maven_group,
                 "Specification-Version"   : "1",
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : project.mod_version,
-                "Implementation-Vendor"   : 'n.paradox',
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                "Implementation-Vendor"   : project.maven_group,
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+
+                "MixinConfigs"            : "${project.mod_id}.mixins.json"
         ])
     }
 
