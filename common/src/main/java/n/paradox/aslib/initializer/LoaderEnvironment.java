@@ -1,5 +1,6 @@
 package n.paradox.aslib.initializer;
 
+//quilt unsupported
 public class LoaderEnvironment {
     public enum Loader {
         FORGE,

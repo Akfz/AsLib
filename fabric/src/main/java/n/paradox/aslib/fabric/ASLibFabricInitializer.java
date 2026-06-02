@@ -10,6 +10,6 @@ public class ASLibFabricInitializer implements ModInitializer {
     }
     @Override
     public void onInitialize() {
-        MAININSTANCE.startInit();
+        MAININSTANCE.init();
     }
 }

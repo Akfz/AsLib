@@ -1,9 +1,5 @@
 package n.paradox.aslib.register;
 
-import n.paradox.aslib.AsLib;
-
-import java.util.Objects;
-
 // все регистрировать сюда
 public final class AsLibRegistries {
     private static boolean isRegistered = false;
@@ -35,18 +31,6 @@ public final class AsLibRegistries {
 
     public static void Init() {
         if (isRegistered) return;
-        Class<?> callerClass = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
-                .walk(stream -> Objects.requireNonNull(stream
-                        .skip(1)
-                        .findFirst()
-                        .map(StackWalker.StackFrame::getDeclaringClass)
-                        .orElse(null)));
-
-        if (callerClass == null || !AsLib.class.isAssignableFrom(callerClass)) {
-            String callerName = callerClass != null ? callerClass.getName() : "Unknown";
-            throw new SecurityException("Calling the Init() method is prohibited for the class: " + callerName);
-        }
-
         for (IRegistry reg : getRegistries()) {
             reg.register();
         }

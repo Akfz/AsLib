@@ -1,5 +1,9 @@
 package n.paradox.aslib.mixin.client;
 
+import n.paradox.aslib.AsLib;
+import n.paradox.aslib.event.impl.client.ClientFirstTickEvent;
+import n.paradox.aslib.event.impl.server.ServerFirstTickEvent;
+import n.paradox.aslib.register.AsLibRegistries;
 import n.paradox.aslib.resourcepack.AsLibResourceReloader;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -8,6 +12,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.concurrent.CompletableFuture;
@@ -35,5 +40,21 @@ public class MinecraftClientMixin {
         );
 
         System.err.println("MIXIN WORKED");
+    }
+
+    @Unique
+    private boolean isStarted = false;
+
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void aslib$onTickStart(CallbackInfo ci) {
+
+    }
+
+    @Inject(method = "tick", at = @At("TAIL"))
+    private void aslib$onTickEnd(CallbackInfo ci) {
+        if (!isStarted) {
+            AsLib.EVENT_BUS.post(new ClientFirstTickEvent());
+            isStarted = true;
+        }
     }
 }

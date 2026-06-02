@@ -18,6 +18,6 @@ public class ASLibForgeInitializer {
     }
 
     private void init(FMLCommonSetupEvent event) {
-        MAININSTANCE.startInit();
+        MAININSTANCE.init();
     }
 }
