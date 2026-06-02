@@ -29,32 +29,34 @@ public abstract class DataProvider {
         this.dataList.add(data);
     }
 
-    private Path resolveSubprojectRoot() {
-        try {
-            Path classPath = Path.of(this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+    private Path resolveSubprojectRoot(String subprojectName) {
+        Path current = Path.of(System.getProperty("user.dir")).toAbsolutePath();
 
-            Path current = classPath;
-            while (current != null && !Files.exists(current.resolve("src"))) {
-                current = current.getParent();
+        Path rootProject = current;
+        while (current != null) {
+            if (Files.exists(current.resolve("settings.gradle")) || Files.exists(current.resolve("gradle.properties"))) {
+                rootProject = current;
+                break;
             }
-
-            if (current != null && Files.exists(current.resolve("src"))) {
-                return current;
-            }
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
+            current = current.getParent();
         }
-        return Path.of(System.getProperty("user.dir"));
+
+        Path subprojectPath = rootProject.resolve(subprojectName);
+        if (Files.exists(subprojectPath)) {
+            return subprojectPath;
+        }
+
+        return subprojectPath;
     }
 
     // запуск, вызывать единожды (если не было ошибок)
-    public void run() {
+    public void run(String subProjectName) {
         registerDataSerializable();
 
-        Path subprojectRoot = resolveSubprojectRoot();
+        Path subprojectRoot = resolveSubprojectRoot(subProjectName);
         Path rootPath = subprojectRoot.resolve(Path.of("src", "generated", "resources"));
 
-        System.out.println("Генерация ресурсов в подпроект: " + subprojectRoot.toAbsolutePath());
+        System.out.println("Generation resources in subproject: " + subprojectRoot.toAbsolutePath());
 
         for (Serializable<?> serializable : dataList) {
             Path filePath;
