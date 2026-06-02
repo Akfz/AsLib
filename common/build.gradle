@@ -60,7 +60,26 @@ tasks.named('processResources', ProcessResources).configure {
     }
 }
 
+def compileSharedMixins = tasks.register('compileSharedMixins', JavaCompile) {
+    group = 'build'
+    description = 'compile sharedMixins to jar module common'
+
+    dependsOn tasks.named('compileJava')
+
+    source = fileTree(dir: 'src/sharedMixins/java', include: '**/*.java')
+    destinationDirectory = file("${project.layout.buildDirectory.get().asFile}/classes/java/sharedMixins")
+    classpath = sourceSets.main.compileClasspath + sourceSets.main.output
+
+    options.encoding = 'UTF-8'
+    options.release = 17
+}
+
 tasks.named('jar', Jar) { Jar task ->
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     task.from sourceSets.main.output
+
+    task.from(compileSharedMixins) {
+        include "**/*.class"
+    }
 }
