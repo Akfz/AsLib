@@ -49,8 +49,6 @@ tasks.named('processResources', ProcessResources).configure {
             mod_description: project.mod_description,
             mod_authors: project.mod_authors,
             mod_license: project.mod_license,
-            mod_homepage: project.mod_homepage,
-            mod_issues: project.mod_issues,
             mod_icon: project.mod_icon
     ]
     inputs.properties replaceProperties

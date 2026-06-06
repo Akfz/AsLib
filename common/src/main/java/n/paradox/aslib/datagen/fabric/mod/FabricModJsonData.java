@@ -120,13 +120,6 @@ public class FabricModJsonData implements Serializable<String> {
         }
         json.append("  ],\n");
 
-        String homepage = props.getProperty("mod_homepage", "");
-        String issues = props.getProperty("mod_issues", "");
-        json.append("  \"contact\": {\n");
-        json.append(String.format("    \"homepage\": \"%s\",\n", homepage));
-        json.append(String.format("    \"sources\": \"%s\"\n", homepage)); // Обычно совпадает с репозиторием
-        json.append("  },\n");
-
         if (mainEntrypoint != null && !mainEntrypoint.isEmpty()) {
             json.append(String.format("  \"entrypoints\": { \"main\": [ \"%s\" ] },\n", mainEntrypoint));
         } else {

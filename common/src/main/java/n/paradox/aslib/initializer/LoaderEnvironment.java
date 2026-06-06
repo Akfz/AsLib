@@ -1,6 +1,6 @@
 package n.paradox.aslib.initializer;
 
-//quilt unsupported
+//quilt currently not supported.
 public class LoaderEnvironment {
     public enum Loader {
         FORGE,
@@ -13,6 +13,16 @@ public class LoaderEnvironment {
     private static Loader currentLoader;
     public static Loader getCurrentLoader() {
         return currentLoader;
+    }
+
+    public static boolean isFabricLike() {
+        Loader loader = getCurrentLoader();
+        return loader == Loader.FABRIC || loader == Loader.QUILT;
+    }
+
+    public static boolean isForgeLike() {
+        Loader loader = getCurrentLoader();
+        return loader == Loader.FORGE || loader == Loader.NEOFORGE;
     }
 
     public static synchronized void InitLoader() {

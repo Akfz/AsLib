@@ -2,8 +2,6 @@ package n.paradox.aslib.mixin.client;
 
 import n.paradox.aslib.AsLib;
 import n.paradox.aslib.event.impl.client.ClientFirstTickEvent;
-import n.paradox.aslib.event.impl.server.ServerFirstTickEvent;
-import n.paradox.aslib.register.AsLibRegistries;
 import n.paradox.aslib.resourcepack.AsLibResourceReloader;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -44,11 +42,6 @@ public class MinecraftClientMixin {
 
     @Unique
     private boolean isStarted = false;
-
-    @Inject(method = "tick", at = @At("HEAD"))
-    private void aslib$onTickStart(CallbackInfo ci) {
-
-    }
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void aslib$onTickEnd(CallbackInfo ci) {

@@ -14,11 +14,6 @@ public class MinecraftServerMixin {
     @Unique
     private boolean isStarted = false;
 
-    @Inject(method = "tickChildren", at = @At("HEAD"))
-    private void aslib$onTickStart(CallbackInfo ci) {
-
-    }
-
     @Inject(method = "tickChildren", at = @At("TAIL"))
     private void aslib$onTickEnd(CallbackInfo ci) {
         if (!isStarted) {

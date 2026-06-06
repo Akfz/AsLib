@@ -17,12 +17,10 @@ public class ModsTomlData implements Serializable<String> {
     private String modLoader = "javafml";
     private String loaderVersion = "[47,)";
     private String license;
-    private String issueTrackerURL;
 
     private String modId;
     private String version;
     private String displayName;
-    private String displayURL;
     private String logoFile;
     private String authors;
     private String description;
@@ -38,8 +36,6 @@ public class ModsTomlData implements Serializable<String> {
         this.authors = props.getProperty("mod_authors", "Unknown");
         this.description = props.getProperty("mod_description", "");
         this.license = props.getProperty("mod_license", "MIT");
-        this.displayURL = props.getProperty("mod_homepage", "");
-        this.issueTrackerURL = props.getProperty("mod_issues", "");
 
         String fullIconPath = props.getProperty("mod_icon", "icon.png");
         this.logoFile = fullIconPath.contains("/") ? fullIconPath.substring(fullIconPath.lastIndexOf("/") + 1) : fullIconPath;
@@ -117,18 +113,14 @@ public class ModsTomlData implements Serializable<String> {
     public String getDescription() { return description; }
     public String getLicense() { return license; }
     public String getLogoFile() { return logoFile; }
-    public String getDisplayURL() { return displayURL; }
-    public String getIssueTrackerURL() { return issueTrackerURL; }
     public String getAuthors() { return authors; }
 
     public ModsTomlData modLoader(String modLoader) { this.modLoader = modLoader; return this; }
     public ModsTomlData loaderVersion(String loaderVersion) { this.loaderVersion = loaderVersion; return this; }
     public ModsTomlData license(String license) { this.license = license; return this; }
-    public ModsTomlData issueTrackerURL(String url) { this.issueTrackerURL = url; return this; }
     public ModsTomlData modId(String modId) { this.modId = modId; return this; }
     public ModsTomlData version(String version) { this.version = version; return this; }
     public ModsTomlData displayName(String name) { this.displayName = name; return this; }
-    public ModsTomlData displayURL(String url) { this.displayURL = url; return this; }
     public ModsTomlData logoFile(String logo) { this.logoFile = logo; return this; }
     public ModsTomlData authors(String authors) { this.authors = authors; return this; }
     public ModsTomlData description(String desc) { this.description = desc; return this; }
@@ -145,16 +137,12 @@ public class ModsTomlData implements Serializable<String> {
         toml.append(String.format("modLoader=\"%s\"\n", modLoader));
         toml.append(String.format("loaderVersion=\"%s\"\n", loaderVersion));
         toml.append(String.format("license=\"%s\"\n", license));
-        if (issueTrackerURL != null && !issueTrackerURL.isEmpty()) {
-            toml.append(String.format("issueTrackerURL=\"%s\"\n", issueTrackerURL));
-        }
         toml.append("\n");
 
         toml.append("[[mods]]\n");
         toml.append(String.format("modId=\"%s\"\n", modId));
         toml.append(String.format("version=\"%s\"\n", version));
         toml.append(String.format("displayName=\"%s\"\n", displayName));
-        if (displayURL != null && !displayURL.isEmpty()) toml.append(String.format("displayURL=\"%s\"\n", displayURL));
         if (logoFile != null && !logoFile.isEmpty()) toml.append(String.format("logoFile=\"%s\"\n", logoFile));
         toml.append(String.format("authors=\"%s\"\n", authors));
 

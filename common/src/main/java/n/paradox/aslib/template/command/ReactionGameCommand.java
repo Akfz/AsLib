@@ -76,6 +76,8 @@ public class ReactionGameCommand extends CommandHelper implements IRegCommand {
 
             source.sendSystemMessage(Component.literal("§aВаш результат: §f" + timeTaken + " мс")
                     .withStyle(ChatFormatting.BOLD));
+            source.sendSystemMessage(Component.literal("Интересный факт : результат быстрее, но отслеживается на сервере :О")
+                    .withStyle(ChatFormatting.BOLD));
 
         } catch (Exception e) {
             source.sendSystemMessage(Component.literal("§cЭту команду может использовать только игрок!"));

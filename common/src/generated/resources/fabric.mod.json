@@ -3,7 +3,7 @@
   "id": "aslib",
   "version": "0",
   "name": "ASLib",
-  "description": "Library for structural resource packs",
+  "description": "something genially",
   "license": "MIT",
   "icon": "assets/aslib/icon.png",
   "environment": "*",
@@ -11,10 +11,6 @@
     "Akaize",
     "SweetB1ans"
   ],
-  "contact": {
-    "homepage": "",
-    "sources": ""
-  },
   "entrypoints": { "main": [ "n.paradox.aslib.fabric.ASLibFabricInitializer" ] },
   "mixins": [ "aslib.mixins.json" ],
   "depends": {

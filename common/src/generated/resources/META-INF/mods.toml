@@ -9,7 +9,7 @@ displayName="ASLib"
 logoFile="icon.png"
 authors="Akaize, SweetB1ans"
 description="""
-"""
+something genially"""
 
 [[dependencies.aslib]]
     modId="minecraft"
