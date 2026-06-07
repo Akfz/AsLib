@@ -20,6 +20,7 @@ dependencies {
     annotationProcessor "io.github.llamalad7:mixinextras-common:0.4.1"
 
     implementation project(path: ":common", configuration: "namedElements")
+    annotationProcessor project(':common')
 }
 
 sourceSets {
@@ -78,4 +79,8 @@ tasks.named('jar', Jar).configure {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from sourceSets.main.output
     from project(':common').sourceSets.main.output
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-AmodLoaderTarget=fabric"
 }

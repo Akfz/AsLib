@@ -1,28 +1,25 @@
 package n.paradox.aslib.initializer;
 
-//quilt currently not supported.
+//quilt currently not supported. мб потом..
 public class LoaderEnvironment {
     public enum Loader {
         FORGE,
         FABRIC,
         NEOFORGE,
         QUILT,
-        UNKNOWN
+        UNKNOWN;
+
+        public boolean isFabricLike() {
+            return this == Loader.FABRIC || this == Loader.QUILT;
+        }
+        public boolean isForgeLike() {
+            return this == Loader.FORGE || this == Loader.NEOFORGE;
+        }
     }
 
     private static Loader currentLoader;
     public static Loader getCurrentLoader() {
         return currentLoader;
-    }
-
-    public static boolean isFabricLike() {
-        Loader loader = getCurrentLoader();
-        return loader == Loader.FABRIC || loader == Loader.QUILT;
-    }
-
-    public static boolean isForgeLike() {
-        Loader loader = getCurrentLoader();
-        return loader == Loader.FORGE || loader == Loader.NEOFORGE;
     }
 
     public static synchronized void InitLoader() {
@@ -50,6 +47,26 @@ public class LoaderEnvironment {
 
         currentLoader = Loader.UNKNOWN;
         System.err.println("ASLib - LoaderEnvironment : Unknown mod loader detected!");
+    }
+
+    public static Loader getFastLoader() {
+        if (hasClass("net.neoforged.fml.loading.FMLLoader") || hasClass("net.neoforged.loading.FMLLoader")) {
+            return Loader.NEOFORGE;
+        }
+
+        if (hasClass("net.minecraftforge.fml.loading.FMLLoader")) {
+            return Loader.FORGE;
+        }
+
+        if (hasClass("org.quiltmc.loader.api.QuiltLoader")) {
+            return Loader.QUILT;
+        }
+
+        if (hasClass("net.fabricmc.loader.api.FabricLoader")) {
+            return Loader.FABRIC;
+        }
+
+        return Loader.UNKNOWN;
     }
 
     private static boolean hasClass(String className) {

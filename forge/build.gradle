@@ -59,6 +59,7 @@ dependencies {
     annotationProcessor "io.github.llamalad7:mixinextras-common:0.4.1"
 
     implementation project(path: ":common", configuration: "namedElements")
+    annotationProcessor project(':common')
 }
 
 mixin {
@@ -114,4 +115,8 @@ tasks.named('jar', Jar).configure {
     }
 
     finalizedBy 'reobfJar'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-AmodLoaderTarget=forge"
 }

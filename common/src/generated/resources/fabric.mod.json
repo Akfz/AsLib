@@ -11,7 +11,7 @@
     "Akaize",
     "SweetB1ans"
   ],
-  "entrypoints": { "main": [ "n.paradox.aslib.fabric.ASLibFabricInitializer" ] },
+  "entrypoints": { "main": [ "n.paradox.aslib.AsLib_fabric" ] },
   "mixins": [ "aslib.mixins.json" ],
   "depends": {
     "fabricloader": ">=0.15.11",
