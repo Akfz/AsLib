@@ -1,0 +1,17 @@
+package n.paradox.aslib.listener;
+
+import n.paradox.aslib.event.api.Listener;
+import n.paradox.aslib.event.api.Subscribe;
+import n.paradox.aslib.event.impl.ExecutionSideEvent;
+import n.paradox.aslib.util.GlobalUtils;
+
+public class ExecutionSideListener implements Listener {
+    @Subscribe
+    public void execute(ExecutionSideEvent event) {
+        if (GlobalUtils.isClientSide()) {
+            event.client.run();
+        } else {
+            event.server.run();
+        }
+    }
+}

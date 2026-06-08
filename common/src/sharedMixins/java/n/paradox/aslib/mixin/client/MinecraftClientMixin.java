@@ -36,8 +36,6 @@ public class MinecraftClientMixin {
                 Util.ioPool(),
                 client
         );
-
-        System.err.println("MIXIN WORKED");
     }
 
     @Unique
