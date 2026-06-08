@@ -5,7 +5,7 @@ import n.paradox.aslib.event.api.Subscribe;
 import n.paradox.aslib.event.impl.ExecutionSideEvent;
 import n.paradox.aslib.util.GlobalUtils;
 
-public class ExecutionSideListener implements Listener {
+public final class ExecutionSideListener implements Listener {
     @Subscribe
     public void execute(ExecutionSideEvent event) {
         if (GlobalUtils.isClientSide()) {

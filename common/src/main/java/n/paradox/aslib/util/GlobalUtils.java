@@ -2,7 +2,7 @@ package n.paradox.aslib.util;
 
 import net.minecraft.client.Minecraft;
 
-public class GlobalUtils {
+public final class GlobalUtils {
     public static boolean isClientSide() {
         try {
             return Minecraft.getInstance() != null;

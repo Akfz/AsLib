@@ -5,7 +5,7 @@ import net.minecraft.util.Mth;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class ColorUtils {
+public final class ColorUtils {
 
     // в формат 0xAARRGGBB
     public static int toArgb(Color c) {

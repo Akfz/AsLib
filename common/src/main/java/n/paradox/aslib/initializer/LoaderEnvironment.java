@@ -1,7 +1,7 @@
 package n.paradox.aslib.initializer;
 
 //quilt currently not supported. мб потом..
-public class LoaderEnvironment {
+public final class LoaderEnvironment {
     public enum Loader {
         FORGE,
         FABRIC,

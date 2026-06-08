@@ -7,7 +7,7 @@ import n.paradox.aslib.event.impl.client.ClientFirstTickEvent;
 import n.paradox.aslib.event.impl.server.ServerFirstTickEvent;
 import n.paradox.aslib.register.AsLibRegistries;
 
-public class FirstTickListener implements Listener {
+public final class FirstTickListener implements Listener {
     @Subscribe(priority = EventPriority.HIGHEST)
     public void onClientFirstTick(ClientFirstTickEvent event) {
         AsLibRegistries.Init();

@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class ReactionGameCommand extends CommandHelper implements IRegCommand {
+public final class ReactionGameCommand extends CommandHelper implements IRegCommand {
     private static final Map<UUID, Long> startTimes = new HashMap<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
