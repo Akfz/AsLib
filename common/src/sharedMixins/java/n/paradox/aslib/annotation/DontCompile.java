@@ -5,7 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-//Скрывает класс, в dev можно пользоваться всеми методами, а в релизном jar класс становится пустым
+//ЕСЛИ ДОБАВЛЕН В build.gradle, то не компилирует аннотированные классы
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.CLASS)
 public @interface DontCompile {
