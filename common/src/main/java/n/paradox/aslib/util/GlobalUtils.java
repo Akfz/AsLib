@@ -17,4 +17,10 @@ public final class GlobalUtils {
         }
         return false;
     }
+
+    //наверное работает :)
+    public static boolean isDevEnvironment() {
+        String classPath = System.getProperty("java.class.path", "");
+        return classPath.contains(".gradle/caches") || classPath.contains("build/classes");
+    }
 }
