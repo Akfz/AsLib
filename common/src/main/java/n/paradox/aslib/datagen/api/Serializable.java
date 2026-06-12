@@ -5,10 +5,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 
-//T - вывод, типо String или JsonElement
+//T - вывод, типо String или JsonElement и др.
 public interface Serializable<T> {
     @Nullable ResourceLocation getRLPath();
-    @Nullable Path getPath(); // если isAsset, то сначала ищет по getRLPath, если нет, то по этому
+    @Nullable Path getPath(); // если isAsset, то ищет по getRLPath, если нет, то по этому
 
     T serialize();
 

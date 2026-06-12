@@ -50,6 +50,7 @@ public abstract class DataProvider {
     }
 
     // запуск, вызывать единожды (если не было ошибок)
+    //НЕ ЗАПУСКАТЬ В МАЙНКРАФТЕ, ТОЛЬКО ДЛЯ DEV!
     public void run(String subProjectName) {
         registerDataSerializable();
 

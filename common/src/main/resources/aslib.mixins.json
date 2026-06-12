@@ -8,8 +8,11 @@
   "mixins": [
     "client.MinecraftClientMixin",
     "client.ResourcePackManagerMixin",
+    "client.ClientGamePacketListenerMixin",
     "CommandsMixin",
-    "server.MinecraftServerMixin"
+    "server.MinecraftServerMixin",
+    "server.ServerGamePacketListenerAccessor",
+    "server.ServerGamePacketListenerImplMixin"
   ],
   "injectors": {
     "defaultRequire": 1

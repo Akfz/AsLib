@@ -10,4 +10,11 @@ public final class GlobalUtils {
             return false;
         }
     }
+
+    public static boolean isClientHost() {
+        if (isClientSide()) {
+            return Minecraft.getInstance().hasSingleplayerServer();
+        }
+        return false;
+    }
 }
