@@ -1,5 +1,9 @@
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.tree.ClassNode
+
 buildscript {
     repositories {
+        mavenCentral()
         maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
     }
     dependencies {
@@ -90,6 +94,36 @@ subprojects {
             tasks.named('jar', Jar) { Jar task ->
                 task.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
                 task.archiveFileName = finalJarName
+            }
+        }
+    }
+
+    tasks.withType(Jar).configureEach {
+        def targetAnnotation = "Ln/paradox/aslib/annotation/DontCompile;"
+
+        eachFile { fileCopyDetails ->
+            if (fileCopyDetails.name.endsWith('.class')) {
+                def file = fileCopyDetails.file
+
+                if (file.exists()) {
+                    def inputStream = file.newInputStream()
+                    try {
+                        def reader = new ClassReader(inputStream)
+                        def classNode = new ClassNode()
+                        reader.accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES)
+
+                        def hasAnnotation = classNode.invisibleAnnotations?.any { it.desc == targetAnnotation } ||
+                                classNode.visibleAnnotations?.any { it.desc == targetAnnotation }
+
+                        if (hasAnnotation) {
+                            fileCopyDetails.exclude()
+                            logger.lifecycle("[AsLib Build] [${project.name}] Класс ${classNode.name} успешно удален из релиза (@DontCompile)")
+                        }
+                    } catch (Exception e) {
+                    } finally {
+                        inputStream.close()
+                    }
+                }
             }
         }
     }
