@@ -10,9 +10,10 @@ import n.paradox.aslib.network.api.PacketHandler;
 import net.minecraft.resources.ResourceLocation;
 
 public final class PacketRegistry {
-    private final Map<ResourceLocation, PacketEntry<?>> byId = new ConcurrentHashMap();
-    private final Map<Class<? extends Packet>, PacketEntry<?>> byClass = new ConcurrentHashMap();
+    private final Map<ResourceLocation, PacketEntry<?>> byId = new ConcurrentHashMap<>();
+    private final Map<Class<? extends Packet>, PacketEntry<?>> byClass = new ConcurrentHashMap<>();
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public <T extends Packet> void register(Class<T> type, PacketEncoder<T> encoder, PacketDecoder<T> decoder, PacketHandler<T> handler) {
         ResourceLocation resourceLocation = this.getResourceLocation(type);
         if (resourceLocation == null) {

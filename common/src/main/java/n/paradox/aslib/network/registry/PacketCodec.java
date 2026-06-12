@@ -11,12 +11,13 @@ public final class PacketCodec {
         this.registry = registry;
     }
 
+    @SuppressWarnings("unchecked")
     public void encode(Packet packet, FriendlyByteBuf buffer) {
-        PacketEntry<Packet> entry = this.registry.get(packet.getClass());
+        PacketEntry<?> entry = this.registry.get(packet.getClass());
         if (entry == null) {
             throw new IllegalStateException("Packet not registered: " + String.valueOf(packet.getClass()));
         } else {
-            entry.encoder().encode(packet, buffer);
+            ((PacketEntry<Packet>) entry).encoder().encode(packet, buffer);
         }
     }
 

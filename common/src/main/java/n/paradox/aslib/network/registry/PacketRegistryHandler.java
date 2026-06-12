@@ -10,21 +10,23 @@ public class PacketRegistryHandler {
         this.registry = registry;
     }
 
+    @SuppressWarnings("unchecked")
     public void handle(Packet packet) {
-        PacketEntry<Packet> entry = this.registry.get(packet.getClass());
+        PacketEntry<?> entry = this.registry.get(packet.getClass());
         if (entry == null) {
             throw new IllegalStateException("Packet not registered: " + String.valueOf(packet.getClass()));
         } else {
-            entry.handler().handle(packet);
+            ((PacketEntry<Packet>) entry).handler().handle(packet);
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void handle(Packet packet, ServerPlayer sender) {
-        PacketEntry<Packet> entry = this.registry.get(packet.getClass());
+        PacketEntry<?> entry = this.registry.get(packet.getClass());
         if (entry == null) {
             throw new IllegalStateException("Packet not registered: " + String.valueOf(packet.getClass()));
         } else {
-            entry.handler().handle(packet, sender);
+            ((PacketEntry<Packet>) entry).handler().handle(packet, sender);
         }
     }
 }
