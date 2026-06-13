@@ -71,10 +71,8 @@ public class InitializerProcessor extends AbstractProcessor {
                 } else if (loader == LoaderType.FabricLike) {
                     generateFabricInitializer(filer, mainClassCanonicalName, mainClassSimpleName, isClient, endPackage, addClassFb);
                 } else {
-                    if (currentTarget == null) {
-                        generateForgeInitializer(filer, mainClassCanonicalName, mainClassSimpleName, modId, isClient, endPackage, addClassFg);
-                        generateFabricInitializer(filer, mainClassCanonicalName, mainClassSimpleName, isClient, endPackage, addClassFb);
-                    } else if (currentTarget.equalsIgnoreCase("fabric")) {
+                    if (currentTarget == null) return true;// теперь в common не компилирует fabric и forge (они не работают все равно)
+                    if (currentTarget.equalsIgnoreCase("fabric")) {
                         generateFabricInitializer(filer, mainClassCanonicalName, mainClassSimpleName, isClient, endPackage, addClassFb);
                     } else if (currentTarget.equalsIgnoreCase("forge") || currentTarget.equalsIgnoreCase("neoforge")) {
                         generateForgeInitializer(filer, mainClassCanonicalName, mainClassSimpleName, modId, isClient, endPackage, addClassFg);
