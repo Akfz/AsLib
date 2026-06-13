@@ -117,7 +117,6 @@ subprojects {
 
                         if (hasAnnotation) {
                             fileCopyDetails.exclude()
-                            logger.lifecycle("[AsLib Build] [${project.name}] Класс ${classNode.name} успешно удален из релиза (@DontCompile)")
                         }
                     } catch (Exception e) {
                     } finally {

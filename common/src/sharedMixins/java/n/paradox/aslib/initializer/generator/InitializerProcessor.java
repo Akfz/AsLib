@@ -56,13 +56,21 @@ public class InitializerProcessor extends AbstractProcessor {
                     endPackage = packageId;
                 }
 
+                String currentTarget = processingEnv.getOptions().get("modLoaderTarget");
+                if (currentTarget != null) {
+                    if (currentTarget.equalsIgnoreCase("fabric") && loader == LoaderType.ForgeLike) {
+                        continue;
+                    }
+                    if ((currentTarget.equalsIgnoreCase("forge") || currentTarget.equalsIgnoreCase("neoforge")) && loader == LoaderType.FabricLike) {
+                        continue;
+                    }
+                }
+
                 if (loader == LoaderType.ForgeLike) {
                     generateForgeInitializer(filer, mainClassCanonicalName, mainClassSimpleName, modId, isClient, endPackage, addClassFg);
                 } else if (loader == LoaderType.FabricLike) {
                     generateFabricInitializer(filer, mainClassCanonicalName, mainClassSimpleName, isClient, endPackage, addClassFb);
                 } else {
-                    String currentTarget = processingEnv.getOptions().get("modLoaderTarget");
-
                     if (currentTarget == null) {
                         generateForgeInitializer(filer, mainClassCanonicalName, mainClassSimpleName, modId, isClient, endPackage, addClassFg);
                         generateFabricInitializer(filer, mainClassCanonicalName, mainClassSimpleName, isClient, endPackage, addClassFb);
