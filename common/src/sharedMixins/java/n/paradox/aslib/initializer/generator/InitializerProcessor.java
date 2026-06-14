@@ -95,8 +95,6 @@ public class InitializerProcessor extends AbstractProcessor {
                 writer.write("package " + packageid + ";\n\n");
                 writer.write("import " + mainClassPath + ";\n");
                 writer.write("import net.minecraftforge.fml.common.Mod;\n");
-                writer.write("import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;\n");
-                writer.write("import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;\n");
                 if (isClient) {
                     writer.write("import net.minecraftforge.api.distmarker.Dist;\n");
                     writer.write("import net.minecraftforge.fml.loading.FMLEnvironment;\n");
@@ -112,10 +110,6 @@ public class InitializerProcessor extends AbstractProcessor {
                 writer.write("    }\n\n");
 
                 writer.write("    public " + generatedClassName + "() {\n");
-                writer.write("        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::init);\n");
-                writer.write("    }\n\n");
-
-                writer.write("    private void init(FMLCommonSetupEvent event) {\n");
                 if (isClient) {
                     writer.write("        if (FMLEnvironment.dist == Dist.CLIENT) {\n");
                     writer.write("            MAININSTANCE.init();\n");
