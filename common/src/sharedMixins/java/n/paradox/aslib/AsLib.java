@@ -4,8 +4,8 @@ import n.paradox.aslib.event.api.EventBus;
 import n.paradox.aslib.initializer.generator.GenerateInitializer;
 import n.paradox.aslib.initializer.generator.InitializerClass;
 import n.paradox.aslib.initializer.generator.LoaderType;
-import n.paradox.aslib.listener.ExecutionSideListener;
-import n.paradox.aslib.listener.FirstTickListener;
+import n.paradox.aslib.event.listener.ExecutionSideListener;
+import n.paradox.aslib.event.listener.FirstTickListener;
 import n.paradox.aslib.register.AsLibRegistries;
 import n.paradox.aslib.template.command.ReactionGameCommand;
 

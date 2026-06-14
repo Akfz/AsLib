@@ -1,4 +1,4 @@
-package n.paradox.aslib.listener;
+package n.paradox.aslib.event.listener;
 
 import n.paradox.aslib.event.api.Listener;
 import n.paradox.aslib.event.api.Subscribe;
