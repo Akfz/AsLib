@@ -1,6 +1,7 @@
 package n.paradox.aslib;
 
 import n.paradox.aslib.event.api.EventBus;
+import n.paradox.aslib.event.impl.FirstTickEvent;
 import n.paradox.aslib.initializer.generator.GenerateInitializer;
 import n.paradox.aslib.initializer.generator.InitializerClass;
 import n.paradox.aslib.initializer.generator.LoaderType;
@@ -18,6 +19,8 @@ public final class AsLib implements InitializerClass {
     public void init() {
         EVENT_BUS.register(new FirstTickListener());
         EVENT_BUS.register(new ExecutionSideListener());
+
+        FirstTickEvent.registerStartTickClient(AsLibRegistries::Init);
 
         AsLibRegistries.getCommandRegistry().addCommand("aslib_testcom", new ReactionGameCommand());
     }

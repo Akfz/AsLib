@@ -1,8 +1,8 @@
 package n.paradox.aslib.mixin.client;
 
 import n.paradox.aslib.AsLib;
-import n.paradox.aslib.event.impl.client.ClientFirstTickEvent;
-import n.paradox.aslib.register.AsLibRegistries;
+import n.paradox.aslib.event.impl.ExecutionSideEvent;
+import n.paradox.aslib.event.impl.FirstTickEvent;
 import n.paradox.aslib.resourcepack.AsLibResourceReloader;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -18,6 +18,11 @@ import java.util.concurrent.CompletableFuture;
 
 @Mixin(Minecraft.class)
 public class MinecraftClientMixin {
+
+    @Inject(method = "<init>", at = @At("TAIL"))
+    private void aslib$start(CallbackInfo ci) {
+        AsLib.EVENT_BUS.post(new ExecutionSideEvent());
+    }
 
     @Unique
     private static final AsLibResourceReloader ASLIB_RELOADER = new AsLibResourceReloader();
@@ -45,7 +50,7 @@ public class MinecraftClientMixin {
     @Inject(method = "tick", at = @At("TAIL"))
     private void aslib$onTickEnd(CallbackInfo ci) {
         if (!isStarted) {
-            AsLib.EVENT_BUS.post(new ClientFirstTickEvent(AsLibRegistries::Init));
+            AsLib.EVENT_BUS.post(new FirstTickEvent());
             isStarted = true;
         }
     }

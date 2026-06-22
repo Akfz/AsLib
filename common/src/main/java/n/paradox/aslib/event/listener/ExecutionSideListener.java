@@ -9,9 +9,9 @@ public final class ExecutionSideListener implements Listener {
     @Subscribe
     public void execute(ExecutionSideEvent event) {
         if (GlobalUtils.isClientSide()) {
-            event.client.run();
+            ExecutionSideEvent.getOnStartClient().forEach(Runnable::run);
         } else {
-            event.server.run();
+            ExecutionSideEvent.getOnStartServer().forEach(Runnable::run);
         }
     }
 }
