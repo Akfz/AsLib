@@ -2,6 +2,7 @@ package n.paradox.aslib.mixin.client;
 
 import n.paradox.aslib.AsLib;
 import n.paradox.aslib.event.impl.client.ClientFirstTickEvent;
+import n.paradox.aslib.register.AsLibRegistries;
 import n.paradox.aslib.resourcepack.AsLibResourceReloader;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -44,7 +45,7 @@ public class MinecraftClientMixin {
     @Inject(method = "tick", at = @At("TAIL"))
     private void aslib$onTickEnd(CallbackInfo ci) {
         if (!isStarted) {
-            AsLib.EVENT_BUS.post(new ClientFirstTickEvent());
+            AsLib.EVENT_BUS.post(new ClientFirstTickEvent(AsLibRegistries::Init));
             isStarted = true;
         }
     }

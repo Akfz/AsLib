@@ -10,10 +10,10 @@ import n.paradox.aslib.register.AsLibRegistries;
 public final class FirstTickListener implements Listener {
     @Subscribe(priority = EventPriority.HIGHEST)
     public void onClientFirstTick(ClientFirstTickEvent event) {
-        AsLibRegistries.Init();
+        event.event.run();
     }
     @Subscribe(priority = EventPriority.HIGHEST)
     public void onServerFirstTick(ServerFirstTickEvent event) {
-        AsLibRegistries.Init();
+        event.event.run();
     }
 }
