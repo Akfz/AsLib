@@ -17,6 +17,7 @@ plugins {
 
 rootProject.name = 'ASLib'
 
-include 'common' // ВЕСЬ КОД
-include 'fabric' //ТОЛЬКО ТЕСТ
-include 'forge' // ТОЛЬКО ТЕСТ
+include 'bridge'
+include 'common'
+include 'fabric'
+include 'forge'

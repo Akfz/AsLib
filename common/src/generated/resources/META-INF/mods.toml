@@ -5,7 +5,7 @@ license="MIT"
 [[mods]]
 modId="aslib"
 version="1"
-displayName="ASLib"
+displayName="AsLib"
 logoFile="icon.png"
 authors="Akaize, SweetB1ans"
 description="""

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "aslib",
   "version": "1",
-  "name": "ASLib",
+  "name": "AsLib",
   "description": "something genially",
   "license": "MIT",
   "icon": "assets/aslib/icon.png",

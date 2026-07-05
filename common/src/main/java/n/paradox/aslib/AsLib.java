@@ -10,7 +10,6 @@ import n.paradox.aslib.event.listener.FirstTickListener;
 
 import java.util.ServiceLoader;
 
-//MainClass всегда в sharedCode
 @GenerateInitializer(loader = LoaderType.Both, modId = "aslib")
 public final class AsLib implements InitializerClass {
     public static final EventBus EVENT_BUS = new EventBus();

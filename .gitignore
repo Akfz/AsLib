@@ -23,11 +23,10 @@
 hs_err_pid*
 replay_pid*
 
-.idea/
+oldcode/.idea/
 .vscode/
 
-/common/src/main/java/n/paradox/aslib/test/**
-
+.idea
 build/
 run/
 .gradle/

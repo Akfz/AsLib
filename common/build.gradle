@@ -49,6 +49,8 @@ tasks.named('processResources', ProcessResources).configure {
             mod_description: project.mod_description,
             mod_authors: project.mod_authors,
             mod_license: project.mod_license,
+            mod_homepage: project.mod_homepage,
+            mod_issues: project.mod_issues,
             mod_icon: project.mod_icon
     ]
     inputs.properties replaceProperties
@@ -58,26 +60,7 @@ tasks.named('processResources', ProcessResources).configure {
     }
 }
 
-def compileSharedCode = tasks.register('compileSharedCode', JavaCompile) {
-    group = 'build'
-    description = 'compile compileSharedCode to jar module common'
-
-    dependsOn tasks.named('compileJava')
-
-    source = fileTree(dir: 'src/sharedCode/java', include: '**/*.java')
-    destinationDirectory = file("${project.layout.buildDirectory.get().asFile}/classes/java/sharedCode")
-    classpath = sourceSets.main.compileClasspath + sourceSets.main.output
-
-    options.encoding = 'UTF-8'
-    options.release = 17
-}
-
-tasks.named('jar', Jar) { Jar task ->
+jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-    task.from sourceSets.main.output
-
-    task.from(compileSharedCode) {
-        include "**/*.class"
-    }
+    from sourceSets.main.output
 }
