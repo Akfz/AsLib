@@ -27,7 +27,7 @@ sourceSets {
     main {
         java {
             srcDirs = ['src/main/java']
-            srcDirs += project(':common').file("src/sharedMixins/java")
+            srcDirs += project(':common').file("src/sharedCode/java")
             srcDirs += project(':common').file("src/generated/java")
         }
         resources {

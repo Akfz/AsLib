@@ -58,14 +58,14 @@ tasks.named('processResources', ProcessResources).configure {
     }
 }
 
-def compileSharedMixins = tasks.register('compileSharedMixins', JavaCompile) {
+def compileSharedCode = tasks.register('compileSharedCode', JavaCompile) {
     group = 'build'
-    description = 'compile sharedMixins to jar module common'
+    description = 'compile compileSharedCode to jar module common'
 
     dependsOn tasks.named('compileJava')
 
-    source = fileTree(dir: 'src/sharedMixins/java', include: '**/*.java')
-    destinationDirectory = file("${project.layout.buildDirectory.get().asFile}/classes/java/sharedMixins")
+    source = fileTree(dir: 'src/sharedCode/java', include: '**/*.java')
+    destinationDirectory = file("${project.layout.buildDirectory.get().asFile}/classes/java/sharedCode")
     classpath = sourceSets.main.compileClasspath + sourceSets.main.output
 
     options.encoding = 'UTF-8'
@@ -77,7 +77,7 @@ tasks.named('jar', Jar) { Jar task ->
 
     task.from sourceSets.main.output
 
-    task.from(compileSharedMixins) {
+    task.from(compileSharedCode) {
         include "**/*.class"
     }
 }

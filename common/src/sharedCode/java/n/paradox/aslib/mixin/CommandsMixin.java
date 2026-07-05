@@ -1,7 +1,7 @@
 package n.paradox.aslib.mixin;
 
 import com.mojang.brigadier.CommandDispatcher;
-import n.paradox.aslib.register.AsLibRegistries;
+import n.paradox.aslib.command.CommandHandler;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import org.spongepowered.asm.mixin.Final;
@@ -18,6 +18,6 @@ public class CommandsMixin {
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void onInitCommands(Commands.CommandSelection selection, net.minecraft.commands.CommandBuildContext context, CallbackInfo ci) {
-        AsLibRegistries.getCommandRegistry().processCommandRegistration(this.dispatcher);
+        CommandHandler.setDispatcher(this.dispatcher);
     }
 }

@@ -6,10 +6,10 @@
   "refmap": "aslib.refmap.json",
   "plugin": "n.paradox.aslib.mixin.plugin.AsLibMixinPlugin",
   "mixins": [
+    "CommandsMixin",
     "client.MinecraftClientMixin",
     "client.ResourcePackManagerMixin",
     "client.ClientGamePacketListenerMixin",
-    "CommandsMixin",
     "server.MinecraftServerMixin",
     "server.ServerGamePacketListenerAccessor",
     "server.ServerGamePacketListenerImplMixin"
