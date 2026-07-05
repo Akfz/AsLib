@@ -10,6 +10,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.CLASS)
 public @interface RegisterModule {
+    //РАБОТАЕТ ЕСЛИ В ОДНОМ ПАПКЕ(т.е если регистратор в sharedCode а аннотированный класс в main, то НЕ СРАБОТАЕТ!)
     String id(); // командам не нужен вообще(так что просто писать айди регистратора)
 
     RegistryType registry() default RegistryType.AUTO;
