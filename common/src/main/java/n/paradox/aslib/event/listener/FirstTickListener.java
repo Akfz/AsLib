@@ -9,10 +9,5 @@ import n.paradox.aslib.util.GlobalUtils;
 public final class FirstTickListener implements Listener {
     @Subscribe(priority = EventPriority.HIGHEST)
     public void execute(FirstTickEvent event) {
-        if (GlobalUtils.isClientSide()) {
-            FirstTickEvent.getOnStartTickClient().forEach(Runnable::run);
-        } else {
-            FirstTickEvent.getOnStartTickServer().forEach(Runnable::run);
-        }
     }
 }

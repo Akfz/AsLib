@@ -8,10 +8,5 @@ import n.paradox.aslib.util.GlobalUtils;
 public final class ExecutionSideListener implements Listener {
     @Subscribe
     public void execute(ExecutionSideEvent event) {
-        if (GlobalUtils.isClientSide()) {
-            ExecutionSideEvent.getOnStartClient().forEach(Runnable::run);
-        } else {
-            ExecutionSideEvent.getOnStartServer().forEach(Runnable::run);
-        }
     }
 }

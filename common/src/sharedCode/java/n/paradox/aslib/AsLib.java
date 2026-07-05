@@ -17,8 +17,8 @@ public final class AsLib implements InitializerClass {
 
     @Override
     public void init() {
-        EVENT_BUS.register(new FirstTickListener());
-        EVENT_BUS.register(new ExecutionSideListener());
+        //EVENT_BUS.register(new FirstTickListener());
+        //EVENT_BUS.register(new ExecutionSideListener());
 
         //это копировать не нужно, оно работает глобально
         try {
@@ -26,6 +26,5 @@ public final class AsLib implements InitializerClass {
         } catch (Exception e) {
             System.err.println("[AsLib] Failed to run automated Fabric SPI registrars: " + e.getMessage());
         }
-        //AsLibRegistries.getCommandRegistry().addCommand("aslib_testcom", new ReactionGameCommand());
     }
 }
