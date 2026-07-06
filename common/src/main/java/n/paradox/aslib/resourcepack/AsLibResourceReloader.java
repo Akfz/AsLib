@@ -7,7 +7,6 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-//ьоьоьоьоьоьоьоьоььо
 public final class AsLibResourceReloader implements PreparableReloadListener {
     @Override
     public CompletableFuture<Void> reload(PreparationBarrier synchronizer, ResourceManager manager, ProfilerFiller prepareProfiler,
@@ -40,6 +39,15 @@ public final class AsLibResourceReloader implements PreparableReloadListener {
                         }
                     }
                 });
+
+                for (ResourceReloadListener globalListener : AsLibResourceResourceReloaderHelper.getGlobalListeners()) {
+                    try {
+                        globalListener.onReload(manager);
+                    } catch (Exception e) {
+                        System.err.println("[ASLib] Error inside global resource reload listener");
+                        e.printStackTrace();
+                    }
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
