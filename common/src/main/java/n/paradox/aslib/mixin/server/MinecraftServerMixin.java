@@ -3,6 +3,7 @@ package n.paradox.aslib.mixin.server;
 import n.paradox.aslib.AsLib;
 import n.paradox.aslib.event.impl.ExecutionSideEvent;
 import n.paradox.aslib.event.impl.FirstTickEvent;
+import n.paradox.aslib.initializer.SideEnvironment;
 import net.minecraft.server.dedicated.DedicatedServer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -15,6 +16,7 @@ public class MinecraftServerMixin {
     @Inject(method = "<init>", at = @At("TAIL"))
     private void aslib$start(CallbackInfo ci) {
         AsLib.EVENT_BUS.post(new ExecutionSideEvent());
+        SideEnvironment.setAndFreeze(SideEnvironment.Side.Server);
     }
 
     @Unique

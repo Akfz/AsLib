@@ -3,6 +3,7 @@ package n.paradox.aslib.mixin.client;
 import n.paradox.aslib.AsLib;
 import n.paradox.aslib.event.impl.ExecutionSideEvent;
 import n.paradox.aslib.event.impl.FirstTickEvent;
+import n.paradox.aslib.initializer.SideEnvironment;
 import n.paradox.aslib.resourcepack.AsLibResourceReloader;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -22,6 +23,7 @@ public class MinecraftClientMixin {
     @Inject(method = "<init>", at = @At("TAIL"))
     private void aslib$start(CallbackInfo ci) {
         AsLib.EVENT_BUS.post(new ExecutionSideEvent());
+        SideEnvironment.setAndFreeze(SideEnvironment.Side.Client);
     }
 
     @Unique

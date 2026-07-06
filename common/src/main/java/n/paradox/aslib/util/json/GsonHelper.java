@@ -2,11 +2,14 @@ package n.paradox.aslib.util.json;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
+import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -56,6 +59,37 @@ public final class GsonHelper {
             logError("[AsLib] Error reading JSON from " + path + " -> " + e.getMessage());
             return null;
         }
+    }
+
+    @Nullable
+    public static <T extends JsonData> T read(ResourceLocation location, Class<T> clazz) {
+        return DEFAULT_GSON.fromJson(getFileContents(location, Minecraft.getInstance().getResourceManager()),clazz);
+    }
+
+    @Nullable
+    public static <T extends JsonData> T read(ResourceLocation location, Class<T> clazz, ResourceManager manager) {
+        return DEFAULT_GSON.fromJson(getFileContents(location, manager),clazz);
+    }
+
+    @Nullable
+    public static <T extends JsonData> T read(ResourceLocation location, Class<T> clazz, Gson gson) {
+
+        return gson.fromJson(getFileContents(location, Minecraft.getInstance().getResourceManager()),clazz);
+    }
+
+    @Nullable
+    public static <T extends JsonData> T read(ResourceLocation location, Class<T> clazz, ResourceManager manager, Gson gson) {
+        return gson.fromJson(getFileContents(location, manager),clazz);
+    }
+
+    @Nullable
+    public static String getFileContents(ResourceLocation location, ResourceManager manager) {
+        try (InputStream inputStream = manager.getResourceOrThrow(location).open()) {
+            return IOUtils.toString(inputStream, Charset.defaultCharset());
+        } catch (IOException e) {
+            logError("[AsLib] : " + e.toString());
+        }
+        return null;
     }
 
     private static void logError(String error) {

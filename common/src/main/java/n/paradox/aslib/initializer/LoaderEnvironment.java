@@ -1,17 +1,13 @@
 package n.paradox.aslib.initializer;
 
-//quilt currently not supported. мб потом..
+//quilt currently not supported.
 public final class LoaderEnvironment {
     public enum Loader {
         FORGE,
         FABRIC,
         NEOFORGE,
-        QUILT,
         UNKNOWN;
 
-        public boolean isFabricLike() {
-            return this == Loader.FABRIC || this == Loader.QUILT;
-        }
         public boolean isForgeLike() {
             return this == Loader.FORGE || this == Loader.NEOFORGE;
         }
@@ -35,11 +31,6 @@ public final class LoaderEnvironment {
             return;
         }
 
-        if (hasClass("org.quiltmc.loader.api.QuiltLoader")) {
-            currentLoader = Loader.QUILT;
-            return;
-        }
-
         if (hasClass("net.fabricmc.loader.api.FabricLoader")) {
             currentLoader = Loader.FABRIC;
             return;
@@ -56,10 +47,6 @@ public final class LoaderEnvironment {
 
         if (hasClass("net.minecraftforge.fml.loading.FMLLoader")) {
             return Loader.FORGE;
-        }
-
-        if (hasClass("org.quiltmc.loader.api.QuiltLoader")) {
-            return Loader.QUILT;
         }
 
         if (hasClass("net.fabricmc.loader.api.FabricLoader")) {
