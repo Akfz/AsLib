@@ -2,6 +2,7 @@ package n.paradox.aslib.util.json;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import n.paradox.aslib.initializer.SideEnvironment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -63,6 +64,7 @@ public final class GsonHelper {
 
     @Nullable
     public static <T extends JsonData> T read(ResourceLocation location, Class<T> clazz) {
+        if (SideEnvironment.getCurrentSide().equals(SideEnvironment.Side.Server)) return null;
         return DEFAULT_GSON.fromJson(getFileContents(location, Minecraft.getInstance().getResourceManager()),clazz);
     }
 
@@ -73,7 +75,7 @@ public final class GsonHelper {
 
     @Nullable
     public static <T extends JsonData> T read(ResourceLocation location, Class<T> clazz, Gson gson) {
-
+        if (SideEnvironment.getCurrentSide().equals(SideEnvironment.Side.Server)) return null;
         return gson.fromJson(getFileContents(location, Minecraft.getInstance().getResourceManager()),clazz);
     }
 
