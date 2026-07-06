@@ -11,6 +11,9 @@ import java.util.Map;
 public final class AsLibResourceResourceReloaderHelper {
     private static Map<String, ResourceReloadListener> resourceReloadListenerMap = new HashMap<>();
 
+    public static void register(String id, ResourceReloadListener listener) {
+        resourceReloadListenerMap.put(id,listener);
+    }
     public static void register(PackResources pack, ResourceReloadListener listener) {
         resourceReloadListenerMap.put(pack.packId(),listener);
     }
