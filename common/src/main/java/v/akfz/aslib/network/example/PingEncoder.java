@@ -1,0 +1,10 @@
+package v.akfz.aslib.network.example;
+
+import v.akfz.aslib.network.api.PacketEncoder;
+import net.minecraft.network.FriendlyByteBuf;
+
+public final class PingEncoder implements PacketEncoder<PingPacket> {
+    public void encode(PingPacket packet, FriendlyByteBuf buf) {
+        buf.writeLong(packet.getTime());
+    }
+}

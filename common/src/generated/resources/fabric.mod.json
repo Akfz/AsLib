@@ -3,15 +3,14 @@
   "id": "aslib",
   "version": "1",
   "name": "AsLib",
-  "description": "something genially",
+  "description": "Come up with a joke yourself",
   "license": "MIT",
   "icon": "assets/aslib/icon.png",
   "environment": "*",
   "authors": [
-    "Akaize",
-    "SweetB1ans"
+    "Akaize"
   ],
-  "entrypoints": { "main": [ "n.paradox.aslib.AsLib_fabric" ] },
+  "entrypoints": { "main": [ "v.akfz.aslib.AsLib_fabric" ] },
   "mixins": [ "aslib.mixins.json" ],
   "depends": {
     "fabricloader": ">=0.15.11",

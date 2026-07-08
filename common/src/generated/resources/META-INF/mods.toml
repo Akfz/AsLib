@@ -7,9 +7,9 @@ modId="aslib"
 version="1"
 displayName="AsLib"
 logoFile="icon.png"
-authors="Akaize, SweetB1ans"
+authors="Akaize"
 description="""
-something genially"""
+Come up with a joke yourself"""
 
 [[dependencies.aslib]]
     modId="minecraft"
