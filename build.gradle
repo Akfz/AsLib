@@ -209,16 +209,12 @@ tasks.register('cleanLibs') {
 
 tasks.register('compileAll') {
     group = 'build'
-    description = 'Cleans and builds all modules and aggregates output release & dev JARs'
+    description = 'Cleans and builds all active modules and aggregates output release & dev JARs'
 
     dependsOn cleanLibs
 
-    def targetProjects = ['fabric', 'forge', 'neoforge', 'common']
-
     subprojects.each { subproject ->
-        if (targetProjects.contains(subproject.name)) {
-            dependsOn subproject.tasks.matching { it.name == 'build' || it.name == 'assemble' }
-        }
+        dependsOn subproject.tasks.matching { it.name == 'build' || it.name == 'assemble' }
     }
 
     doLast {
@@ -229,21 +225,23 @@ tasks.register('compileAll') {
         devDir.mkdirs()
 
         ['fabric', 'forge', 'neoforge'].each { platform ->
-            def subProj = project(":${platform}")
-            def buildLibs = subProj.layout.buildDirectory.dir("libs").get().asFile
+            def subProj = findProject(":${platform}")
+            if (subProj != null) {
+                def buildLibs = subProj.layout.buildDirectory.dir("libs").get().asFile
 
-            if (buildLibs.exists()) {
-                buildLibs.listFiles().each { jarFile ->
-                    if (jarFile.name.endsWith(".jar")) {
-                        if (jarFile.name.contains("-dev")) {
-                            copy {
-                                from jarFile
-                                into devDir
-                            }
-                        } else {
-                            copy {
-                                from jarFile
-                                into modDir
+                if (buildLibs.exists()) {
+                    buildLibs.listFiles().each { jarFile ->
+                        if (jarFile.name.endsWith(".jar")) {
+                            if (jarFile.name.contains("-dev")) {
+                                copy {
+                                    from jarFile
+                                    into devDir
+                                }
+                            } else {
+                                copy {
+                                    from jarFile
+                                    into modDir
+                                }
                             }
                         }
                     }
@@ -251,15 +249,18 @@ tasks.register('compileAll') {
             }
         }
 
-        def commonLibs = project(':common').layout.buildDirectory.dir("libs").get().asFile
-        if (commonLibs.exists()) {
-            commonLibs.listFiles().each { jarFile ->
-                if (jarFile.name.endsWith(".jar")) {
-                    def destName = jarFile.name.contains("-dev") ? jarFile.name : jarFile.name.replace(".jar", "-dev.jar")
-                    copy {
-                        from jarFile
-                        into devDir
-                        rename { destName }
+        def commonProj = findProject(':common')
+        if (commonProj != null) {
+            def commonLibs = commonProj.layout.buildDirectory.dir("libs").get().asFile
+            if (commonLibs.exists()) {
+                commonLibs.listFiles().each { jarFile ->
+                    if (jarFile.name.endsWith(".jar")) {
+                        def destName = jarFile.name.contains("-dev") ? jarFile.name : jarFile.name.replace(".jar", "-dev.jar")
+                        copy {
+                            from jarFile
+                            into devDir
+                            rename { destName }
+                        }
                     }
                 }
             }
