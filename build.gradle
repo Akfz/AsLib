@@ -1,0 +1,268 @@
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.tree.ClassNode
+
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+    }
+    dependencies {
+        classpath "org.spongepowered:mixingradle:${project.mixingradle_version}"
+    }
+}
+
+ext.modProperties = [
+        version: project.mod_version,
+        loader_version: project.fabric_loader_version,
+        minecraft_version: project.minecraft_version,
+        mod_id: project.mod_id,
+        mod_name: project.mod_name,
+        mod_description: project.mod_description,
+        mod_authors: project.mod_authors,
+        mod_license: project.mod_license,
+        mod_homepage: project.mod_homepage,
+        mod_issues: project.mod_issues,
+        mod_icon: project.mod_icon,
+        forge_version: project.findProperty('forge_version') ?: '',
+        neoforge_version: project.findProperty('neoforge_version') ?: ''
+]
+
+allprojects {
+    apply plugin: 'java'
+
+    def javaVer = Integer.parseInt(project.findProperty('java_version') ?: '17')
+    java {
+        sourceCompatibility = JavaVersion.toVersion(javaVer)
+        targetCompatibility = JavaVersion.toVersion(javaVer)
+    }
+
+    version = project.mod_version
+    group = project.maven_group
+}
+
+subprojects {
+    def javaVer = Integer.parseInt(project.findProperty('java_version') ?: '17')
+
+    tasks.withType(JavaCompile).configureEach {
+        it.options.encoding = 'UTF-8'
+        it.options.release = javaVer
+    }
+
+
+
+    tasks.processResources {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
+    if (project.name != 'common') {
+        configurations {
+            embed
+            implementation.extendsFrom(embed)
+        }
+
+        repositories {
+            maven { url = 'https://jitpack.io' }
+        }
+
+        sourceSets {
+            main {
+                java {
+                    srcDirs += project(':common').file('src/main/java')
+                    if (project(':common').file('src/generated/java').exists()) {
+                        srcDirs += project(':common').file('src/generated/java')
+                    }
+                }
+                resources {
+                    srcDirs += project(':common').file('src/main/resources')
+                    if (project(':common').file('src/generated/resources').exists()) {
+                        srcDirs += project(':common').file('src/generated/resources')
+                    }
+                }
+            }
+        }
+    }
+
+    dependencies {
+        //implementation "com.github.Akfz.AsLib:common:${project.aslib_version}"
+        //if (project.name != 'common') {
+        //    annotationProcessor "com.github.Akfz.AsLib:common:${project.aslib_version}"
+        //}
+        if (project.name != "common") annotationProcessor project(":common")
+    }
+
+    tasks.named('processResources', ProcessResources).configure {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+        if (project.name == 'forge') {
+            exclude 'fabric.mod.json'
+            exclude 'quilt.mod.json'
+            exclude 'META-INF/neoforge.mods.toml'
+        }
+        if (project.name == 'neoforge') {
+            exclude 'fabric.mod.json'
+            exclude 'quilt.mod.json'
+            exclude 'META-INF/mods.toml'
+        }
+        if (project.name == 'fabric') {
+            exclude 'META-INF/mods.toml'
+            exclude 'META-INF/neoforge.mods.toml'
+            exclude 'pack.mcmeta'
+        }
+    }
+
+    tasks.withType(Jar).configureEach {
+        def targetAnnotation = "Lv/akfz/aslib/annotation/DontCompile;"
+
+        eachFile { fileCopyDetails ->
+            if (fileCopyDetails.name.endsWith('.class')) {
+                def file = fileCopyDetails.file
+
+                if (file.exists()) {
+                    try {
+                        file.withInputStream { inputStream ->
+                            def reader = new ClassReader(inputStream)
+                            def classNode = new ClassNode()
+                            reader.accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES)
+
+                            def hasAnnotation = classNode.invisibleAnnotations?.any { it.desc == targetAnnotation } ||
+                                    classNode.visibleAnnotations?.any { it.desc == targetAnnotation }
+
+                            if (hasAnnotation) {
+                                fileCopyDetails.exclude()
+                            }
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+        }
+    }
+}
+
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+
+abstract class ResourceCleanerService implements BuildService<BuildServiceParameters.None>, AutoCloseable {
+    final List<File> filesToDelete = Collections.synchronizedList(new ArrayList<File>())
+
+    @Override
+    void close() {
+        println "[AsLib-Build] Cleaning temporary run/mods files..."
+        filesToDelete.each { file ->
+            if (file.exists()) {
+                try {
+                    file.delete()
+                    println "[AsLib-Build] Deleted temporary file: ${file.name}"
+                    if (file.parentFile.exists() && file.parentFile.list().length == 0) {
+                        file.parentFile.delete()
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+    }
+}
+
+def cleanerProvider = gradle.sharedServices.registerIfAbsent("resourceCleaner", ResourceCleanerService) {}
+
+tasks.register('copyRunLibs') {
+    group = 'build'
+    description = 'Copies platform libs from root/libs to subproject run/mods directories'
+
+    doLast {
+        def cleaner = cleanerProvider.get()
+        def libsDir = rootProject.file("libs")
+
+        def targets = [
+                'fabric': rootProject.file("fabric/run/mods"),
+                'forge': rootProject.file("forge/run/mods"),
+                'neoforge': rootProject.file("neoforge/run/mods")
+        ]
+
+        if (libsDir.exists() && libsDir.isDirectory()) {
+            libsDir.listFiles().each { file ->
+                if (file.isFile() && file.name.endsWith(".jar")) {
+                    targets.each { platform, targetDir ->
+                        if (file.name.contains("-${platform}-")) {
+                            if (!targetDir.exists()) targetDir.mkdirs()
+                            def targetFile = new File(targetDir, file.name)
+                            java.nio.file.Files.copy(file.toPath(), targetFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                            cleaner.filesToDelete.add(targetFile)
+                            println "[AsLib-Build] Copied ${file.name} -> ${platform}/run/mods"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.register('cleanLibs') {
+    group = 'build'
+    description = 'Deletes build/libs directory in root project and all subprojects'
+    doLast {
+        delete rootProject.layout.buildDirectory.dir("libs")
+        subprojects.each { subproject ->
+            delete subproject.layout.buildDirectory.dir("libs")
+        }
+    }
+}
+
+tasks.register('compileAll') {
+    group = 'build'
+    description = 'Cleans and builds all modules and aggregates output release & dev JARs'
+
+    dependsOn cleanLibs
+
+    def targetProjects = ['fabric', 'forge', 'neoforge', 'common']
+
+    subprojects.each { subproject ->
+        if (targetProjects.contains(subproject.name)) {
+            dependsOn subproject.tasks.matching { it.name == 'build' || it.name == 'assemble' }
+        }
+    }
+
+    doLast {
+        def modDir = layout.buildDirectory.dir("libs/mod").get().asFile
+        def devDir = layout.buildDirectory.dir("libs/dev").get().asFile
+
+        modDir.mkdirs()
+        devDir.mkdirs()
+
+        ['fabric', 'forge', 'neoforge'].each { platform ->
+            def subProj = project(":${platform}")
+            def buildLibs = subProj.layout.buildDirectory.dir("libs").get().asFile
+
+            if (buildLibs.exists()) {
+                buildLibs.listFiles().each { jarFile ->
+                    if (jarFile.name.endsWith(".jar")) {
+                        if (jarFile.name.contains("-dev")) {
+                            copy {
+                                from jarFile
+                                into devDir
+                            }
+                        } else {
+                            copy {
+                                from jarFile
+                                into modDir
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        def commonLibs = project(':common').layout.buildDirectory.dir("libs").get().asFile
+        if (commonLibs.exists()) {
+            commonLibs.listFiles().each { jarFile ->
+                if (jarFile.name.endsWith(".jar")) {
+                    def destName = jarFile.name.contains("-dev") ? jarFile.name : jarFile.name.replace(".jar", "-dev.jar")
+                    copy {
+                        from jarFile
+                        into devDir
+                        rename { destName }
+                    }
+                }
+            }
+        }
+    }
+}
