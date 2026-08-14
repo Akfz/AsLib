@@ -1,0 +1,22 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "v.akfz.aslib.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "aslib.refmap.json",
+  "plugin": "v.akfz.aslib.mixin.plugin.AsLibMixinPlugin",
+  "mixins": [
+    "client.MinecraftClientMixin",
+    "client.ClientGamePacketListenerMixin",
+    "client.CameraMixin",
+    "client.GameRendererMixin",
+    "ResourcePackManagerMixin",
+    "CommandsMixin",
+    "MinecraftSrvMixin",
+    "SrvGamePacketListenerAccessor",
+    "SrvGamePacketListenerImplMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

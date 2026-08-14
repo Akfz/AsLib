@@ -36,6 +36,11 @@ allprojects {
         sourceCompatibility = JavaVersion.toVersion(javaVer)
         targetCompatibility = JavaVersion.toVersion(javaVer)
     }
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(javaVer)
+        }
+    }
 
     version = project.mod_version
     group = project.maven_group
