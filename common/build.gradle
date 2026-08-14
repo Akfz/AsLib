@@ -1,5 +1,6 @@
 plugins {
     id 'fabric-loom'
+    id 'maven-publish'
 }
 
 base {
@@ -48,4 +49,20 @@ tasks.named('processResources', ProcessResources).configure {
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from sourceSets.main.output
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = "${project.archives_base_name}-common"
+            from components.java
+        }
+    }
+    repositories {
+        if (project.hasProperty('publishing-dir')) {
+            maven {
+                url = rootProject.file(project.property('publishing-dir'))
+            }
+        }
+    }
 }
