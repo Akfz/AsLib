@@ -29,6 +29,7 @@ ext.modProperties = [
 
 allprojects {
     apply plugin: 'java'
+    apply plugin: 'eclipse'
 
     def javaVer = Integer.parseInt(project.findProperty('java_version') ?: '17')
     java {
@@ -47,8 +48,6 @@ subprojects {
         it.options.encoding = 'UTF-8'
         it.options.release = javaVer
     }
-
-
 
     tasks.processResources {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
@@ -88,6 +87,7 @@ subprojects {
         //    annotationProcessor "com.github.Akfz.AsLib:common:${project.aslib_version}"
         //}
         if (project.name != "common") annotationProcessor project(":common")
+        implementation project(':common')
     }
 
     tasks.named('processResources', ProcessResources).configure {
