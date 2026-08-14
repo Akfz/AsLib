@@ -3,26 +3,26 @@
   <groupId>v.akfz</groupId>
   <artifactId>aslib-common</artifactId>
   <versioning>
-    <lastUpdated>20260814111350</lastUpdated>
+    <lastUpdated>20260814111345</lastUpdated>
     <snapshot>
-      <timestamp>20260814.111350</timestamp>
+      <timestamp>20260814.111345</timestamp>
       <buildNumber>1</buildNumber>
     </snapshot>
     <snapshotVersions>
       <snapshotVersion>
-        <extension>jar</extension>
-        <value>1.0-20260814.111350-1</value>
-        <updated>20260814111350</updated>
+        <extension>pom</extension>
+        <value>1.0-20260814.111345-1</value>
+        <updated>20260814111345</updated>
       </snapshotVersion>
       <snapshotVersion>
-        <extension>pom</extension>
-        <value>1.0-20260814.111350-1</value>
-        <updated>20260814111350</updated>
+        <extension>jar</extension>
+        <value>1.0-20260814.111345-1</value>
+        <updated>20260814111345</updated>
       </snapshotVersion>
       <snapshotVersion>
         <extension>module</extension>
-        <value>1.0-20260814.111350-1</value>
-        <updated>20260814111350</updated>
+        <value>1.0-20260814.111345-1</value>
+        <updated>20260814111345</updated>
       </snapshotVersion>
     </snapshotVersions>
   </versioning>
