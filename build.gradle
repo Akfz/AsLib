@@ -87,7 +87,7 @@ subprojects {
         //    annotationProcessor "com.github.Akfz.AsLib:common:${project.aslib_version}"
         //}
         if (project.name != "common") annotationProcessor project(":common")
-        implementation project(':common')
+        if (project.name != "common") implementation project(':common')
     }
 
     tasks.named('processResources', ProcessResources).configure {
