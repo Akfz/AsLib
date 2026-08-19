@@ -2,6 +2,9 @@ package v.akfz.aslib.world.preset;
 
 import net.minecraft.resources.ResourceLocation;
 
+/**
+ * Preset enum representing standard vanilla noise generator settings identifiers.
+ */
 public enum VanillaNoiseSettings {
     OVERWORLD("overworld"),
     LARGE_BIOMES("large_biomes"),

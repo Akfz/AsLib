@@ -4,7 +4,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.resources.ResourceLocation;
 
-//Генерирует blockstate с поворотами (x,y)
+/**
+ * Generates blockstates with rotations (x,y)
+ */
 public class RotatableBlockStateVariant implements BlockStateVariant {
     private final String key;
     private final ResourceLocation modelId;

@@ -2,7 +2,9 @@ package v.akfz.aslib.datagen.fabric.mod;
 
 import v.akfz.aslib.datagen.api.DataProvider;
 
-// некоторые данные (миксин, класс) нужно дописывать вручную
+/**
+ * Some data you need to write yourself (like mixins or loader class)
+ */
 public class GenerateFabricModJson extends DataProvider {
 
     private final FabricModJsonData data;

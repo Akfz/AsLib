@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
+/**
+ * forge mods.toml, but fabric
+ */
 public class FabricModJsonData implements Serializable<String> {
 
     private int schemaVersion = 1;
@@ -20,7 +23,10 @@ public class FabricModJsonData implements Serializable<String> {
     private String description = "";
     private String license;
     private String icon;
-    private String environment = "*"; // "*", "client", "server"
+    /**
+     * "*", "client", "server"
+     */
+    private String environment = "*";
 
     private final List<String> authors = new ArrayList<>();
     private final List<String> contributors = new ArrayList<>();

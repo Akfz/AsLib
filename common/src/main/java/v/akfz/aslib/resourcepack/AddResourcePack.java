@@ -9,40 +9,62 @@ import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.world.flag.FeatureFlagSet;
 
-//Добавляет ресурс паки в клиент(P.s только в клиент, если понадобится обновлю до сервера)
+/**
+ * Utility class for injecting custom resource packs and data packs into a Minecraft {@link PackRepository}.
+ */
 public final class AddResourcePack {
 
+    private AddResourcePack() {}
+
+    /**
+     * Registers a client resource pack.
+     */
     public static void add(PackRepository manager, PackResources pack, Component description,
                            String id, Component displayName, boolean alwaysEnabled,
                            Pack.Position pos, boolean pinned, PackSource source) {
         add(manager, pack, description, id, displayName, alwaysEnabled, pos, pinned, source, PackType.CLIENT_RESOURCES);
     }
 
+    /**
+     * Registers a file-system backed client resource pack.
+     */
     public static void addFRP(PackRepository manager, FileResourcePack frp, Component description,
                               boolean alwaysEnabled, Pack.Position pos,
                               boolean pinned, PackSource source) {
         addFRP(manager, frp, description, alwaysEnabled, pos, pinned, source, PackType.CLIENT_RESOURCES);
     }
 
+    /**
+     * Registers a pack with a custom {@link PackType}.
+     */
     public static void add(PackRepository manager, PackResources pack, Component description,
                            String id, Component displayName, boolean alwaysEnabled,
                            Pack.Position pos, boolean pinned, PackSource source, PackType packType) {
-        registerInternal(manager, id, displayName, alwaysEnabled, pos, pinned, source, description, (name) -> pack, packType);
+        registerInternal(manager, id, displayName, alwaysEnabled, pos, pinned, source, description, name -> pack, packType);
     }
 
+    /**
+     * Registers a file-system backed pack with a custom {@link PackType}.
+     */
     public static void addFRP(PackRepository manager, FileResourcePack frp, Component description,
                               boolean alwaysEnabled, Pack.Position pos,
                               boolean pinned, PackSource source, PackType packType) {
         registerInternal(manager, frp.getSimpleNamespace(), Component.literal(frp.getPack().packId()),
-                alwaysEnabled, pos, pinned, source, description, (name) -> frp.getPack(), packType);
+                alwaysEnabled, pos, pinned, source, description, name -> frp.getPack(), packType);
     }
 
+    /**
+     * Registers a server data pack.
+     */
     public static void addServerData(PackRepository manager, PackResources pack, Component description,
                                      String id, Component displayName, boolean alwaysEnabled,
                                      Pack.Position pos, boolean pinned, PackSource source) {
         add(manager, pack, description, id, displayName, alwaysEnabled, pos, pinned, source, PackType.SERVER_DATA);
     }
 
+    /**
+     * Registers a file-system backed server data pack.
+     */
     public static void addServerDataFRP(PackRepository manager, FileResourcePack frp, Component description,
                                         boolean alwaysEnabled, Pack.Position pos,
                                         boolean pinned, PackSource source) {

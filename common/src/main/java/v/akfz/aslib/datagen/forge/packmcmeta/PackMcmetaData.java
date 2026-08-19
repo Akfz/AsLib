@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Properties;
 
+/**
+ * i dont understand why forge need this
+ */
 public class PackMcmetaData implements Serializable<String> {
 
     private String description;

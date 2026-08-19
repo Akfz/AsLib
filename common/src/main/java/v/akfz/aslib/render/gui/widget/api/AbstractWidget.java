@@ -15,6 +15,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+/**
+ * My variations and vision of gui-widgets
+ */
 public abstract class AbstractWidget implements Renderable, GuiEventListener, NarratableEntry {
     protected int x, y, width, height;
     protected boolean visible = true;

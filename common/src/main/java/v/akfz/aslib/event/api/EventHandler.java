@@ -1,5 +1,8 @@
 package v.akfz.aslib.event.api;
 
+/**
+ * Guide {@link Event}
+ */
 public final class EventHandler<E extends Event> {
 
     private final EventInvoker<E> invoker;

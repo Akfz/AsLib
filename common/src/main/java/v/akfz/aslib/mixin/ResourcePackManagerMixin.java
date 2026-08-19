@@ -1,6 +1,7 @@
 package v.akfz.aslib.mixin;
 
 import v.akfz.aslib.resourcepack.ResourcePackExpander;
+import v.akfz.aslib.resourcepack.configpack.ConfigPack;
 import v.akfz.aslib.resourcepack.dynamic.DynamicDataPack;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
@@ -28,9 +29,10 @@ public class ResourcePackManagerMixin implements ResourcePackExpander {
     }
 
     @Inject(method = "discoverAvailable", at = @At("HEAD"))
-    private void aslib$registerDynamicDataPack(CallbackInfoReturnable<Map<String, Pack>> cir) {
+    private void aslib$registerDynamicPacks(CallbackInfoReturnable<Map<String, Pack>> cir) {
         PackRepository repo = (PackRepository) (Object) this;
         DynamicDataPack.registerToRepository(repo);
+        ConfigPack.registerToRepository(repo);
     }
 
     @Inject(method = "discoverAvailable", at = @At("RETURN"), cancellable = true)

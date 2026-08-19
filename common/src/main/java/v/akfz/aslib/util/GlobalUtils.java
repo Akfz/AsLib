@@ -8,14 +8,28 @@ import java.nio.file.Paths;
 
 public final class GlobalUtils {
     private static Boolean cachedDevEnvironment = null;
+
+    /**
+     * @return path to minecraft/AsLib
+     */
     public static Path getAsLibCFGPath() {
         return Paths.get("").toAbsolutePath().resolve("AsLib");
+    }
+
+    /**
+     * @return path to minecraft
+     */
+    public static Path getMinecraftPath() {
+        return Paths.get("");
     }
 
     public static boolean isClientSide() {
         return SideEnvironment.getCurrentSide().equals(SideEnvironment.Side.Client);
     }
 
+    /**
+     * @return is client and host player (for server logic on local connection)
+     */
     public static boolean isClientHost() {
         if (isClientSide()) {
             return Minecraft.getInstance().hasSingleplayerServer();
@@ -23,7 +37,9 @@ public final class GlobalUtils {
         return false;
     }
 
-    //наверное работает :)
+    /**
+     * @return return is devEnv (WARN, maybe dont work!)
+     */
     public static boolean isDevEnvironment() {
         if (cachedDevEnvironment != null) {
             return cachedDevEnvironment;

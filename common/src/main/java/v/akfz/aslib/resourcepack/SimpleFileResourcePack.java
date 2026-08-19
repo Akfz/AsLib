@@ -18,7 +18,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-//Простой пример для работы с ресурс паками вне кода (т.е src/ч/resources)
+/**
+ * File-system backed implementation of {@link PackResources} that caches files from disk.
+ */
 public class SimpleFileResourcePack implements PackResources, FileResourcePack {
     private final String pack_name;
     private final String namespace;
@@ -51,7 +53,7 @@ public class SimpleFileResourcePack implements PackResources, FileResourcePack {
                 cacheFiles.put(relativePath, path);
             });
         } catch (IOException e) {
-            System.err.println("Ошибка предзагрузки кэша " + pack_name + " : " + e.getMessage());
+            System.err.println("Error preloading cache for " + pack_name + ": " + e.getMessage());
         }
     }
 
@@ -68,6 +70,11 @@ public class SimpleFileResourcePack implements PackResources, FileResourcePack {
 
     @Override
     public @Nullable IoSupplier<InputStream> getRootResource(String... strings) {
+        String pathStr = String.join("/", strings);
+        Path filePath = root.resolve(pathStr);
+        if (Files.exists(filePath)) {
+            return IoSupplier.create(filePath);
+        }
         return null;
     }
 
@@ -78,7 +85,6 @@ public class SimpleFileResourcePack implements PackResources, FileResourcePack {
         }
 
         String path = resourceLocation.getPath();
-
         Path filePath = cacheFiles.get(path);
 
         if (filePath == null || !Files.exists(filePath)) {

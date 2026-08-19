@@ -16,6 +16,9 @@ import v.akfz.aslib.resourcepack.dynamic.DynamicDataPack;
 
 import java.util.Optional;
 
+/**
+ * REALLY simplifies things for creation new damage sources, to 1-2 lines code
+ */
 public final class DamageSourceHelper {
 
     private DamageSourceHelper() {}

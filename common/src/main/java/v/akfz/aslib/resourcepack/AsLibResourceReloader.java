@@ -7,6 +7,9 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+/**
+ * Custom reload listener that updates file caches and triggers registered callbacks when resources/data are reloaded.
+ */
 public final class AsLibResourceReloader implements PreparableReloadListener {
     @Override
     public CompletableFuture<Void> reload(PreparationBarrier synchronizer, ResourceManager manager, ProfilerFiller prepareProfiler,
@@ -28,7 +31,7 @@ public final class AsLibResourceReloader implements PreparableReloadListener {
             applyProfiler.push("aslib_reload_callbacks");
             try {
                 manager.listPacks().forEach(pack -> {
-                    ResourceReloadListener listener = AsLibResourceResourceReloaderHelper.getListener(pack);
+                    ResourceReloadListener listener = AsLibResourceReloaderHelper.getListener(pack);
 
                     if (listener != null) {
                         try {
@@ -40,7 +43,7 @@ public final class AsLibResourceReloader implements PreparableReloadListener {
                     }
                 });
 
-                for (ResourceReloadListener globalListener : AsLibResourceResourceReloaderHelper.getGlobalListeners()) {
+                for (ResourceReloadListener globalListener : AsLibResourceReloaderHelper.getGlobalListeners()) {
                     try {
                         globalListener.onReload(manager);
                     } catch (Exception e) {

@@ -2,6 +2,9 @@ package v.akfz.aslib.util.math;
 
 import java.util.function.BiFunction;
 
+/**
+ * its {@link CompositePair} but with dirty checkers (for synchronization)
+ */
 public class DirtyCompositePair<T extends Number> extends CompositePair<T> {
     private T cachedValue;
     private boolean dirty = true;

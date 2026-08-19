@@ -4,12 +4,13 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.RecordComponent;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-// по сути чистый хелпер
 public class AutoCodec {
 
     private static final Map<Class<?>, TypeCodec<?>> TYPE_CODECS = new ConcurrentHashMap<>();
@@ -21,6 +22,7 @@ public class AutoCodec {
         registerType(double.class, Double.class, FriendlyByteBuf::writeDouble, FriendlyByteBuf::readDouble);
         registerType(boolean.class, Boolean.class, FriendlyByteBuf::writeBoolean, FriendlyByteBuf::readBoolean);
         registerType(long.class, Long.class, FriendlyByteBuf::writeLong, FriendlyByteBuf::readLong);
+
         registerType(String.class, new TypeCodec<>() {
             @Override
             public void encode(FriendlyByteBuf buf, String value) {
@@ -32,6 +34,7 @@ public class AutoCodec {
                 return buf.readUtf();
             }
         });
+
         registerType(ResourceLocation.class, new TypeCodec<>() {
             @Override
             public void encode(FriendlyByteBuf buf, ResourceLocation value) {
@@ -43,6 +46,7 @@ public class AutoCodec {
                 return buf.readResourceLocation();
             }
         });
+
         registerType(UUID.class, new TypeCodec<>() {
             @Override
             public void encode(FriendlyByteBuf buf, UUID value) {
@@ -54,23 +58,20 @@ public class AutoCodec {
                 return buf.readUUID();
             }
         });
-        registerType(Vec3.class, new TypeCodec<>() {
-                    @Override
-                    public void encode(FriendlyByteBuf buf, Vec3 value) {
-                        buf.writeDouble(value.x);
-                        buf.writeDouble(value.y);
-                        buf.writeDouble(value.z);
-                    }
 
-                    @Override
-                    public Vec3 decode(FriendlyByteBuf buf) {
-                        double x = buf.readDouble();
-                        double y = buf.readDouble();
-                        double z = buf.readDouble();
-                        return new Vec3(x, y, z);
-                    }
-                }
-        );
+        registerType(Vec3.class, new TypeCodec<>() {
+            @Override
+            public void encode(FriendlyByteBuf buf, Vec3 value) {
+                buf.writeDouble(value.x);
+                buf.writeDouble(value.y);
+                buf.writeDouble(value.z);
+            }
+
+            @Override
+            public Vec3 decode(FriendlyByteBuf buf) {
+                return new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble());
+            }
+        });
     }
 
     public static <T> void registerType(Class<T> clazz, TypeCodec<T> codec) {
@@ -103,13 +104,19 @@ public class AutoCodec {
         }
 
         try {
-            List<Field> fields = getFields(clazz);
-            for (Field field : fields) {
-                Object fieldValue = field.get(obj);
-                encode(buf, fieldValue);
+            if (clazz.isRecord()) {
+                for (RecordComponent component : clazz.getRecordComponents()) {
+                    Object val = component.getAccessor().invoke(obj);
+                    encode(buf, val);
+                }
+            } else {
+                List<Field> fields = getFields(clazz);
+                for (Field field : fields) {
+                    encode(buf, field.get(obj));
+                }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Error to encode class - " + clazz.getName(), e);
+            throw new RuntimeException("Failed to encode class: " + clazz.getName(), e);
         }
     }
 
@@ -126,16 +133,31 @@ public class AutoCodec {
         }
 
         try {
-            T instance = clazz.getDeclaredConstructor().newInstance();
-            List<Field> fields = getFields(clazz);
+            if (clazz.isRecord()) {
+                RecordComponent[] components = clazz.getRecordComponents();
+                Class<?>[] paramTypes = new Class<?>[components.length];
+                Object[] args = new Object[components.length];
 
-            for (Field field : fields) {
-                Object fieldValue = decode(buf, field.getType());
-                field.set(instance, fieldValue);
+                for (int i = 0; i < components.length; i++) {
+                    paramTypes[i] = components[i].getType();
+                    args[i] = decode(buf, paramTypes[i]);
+                }
+
+                Constructor<T> canonicalConstructor = clazz.getDeclaredConstructor(paramTypes);
+                canonicalConstructor.setAccessible(true);
+                return canonicalConstructor.newInstance(args);
+            } else {
+                T instance = clazz.getDeclaredConstructor().newInstance();
+                List<Field> fields = getFields(clazz);
+
+                for (Field field : fields) {
+                    Object fieldValue = decode(buf, field.getType());
+                    field.set(instance, fieldValue);
+                }
+                return instance;
             }
-            return instance;
         } catch (Exception e) {
-            throw new RuntimeException("Error to decode class " + clazz.getName(), e);
+            throw new RuntimeException("Failed to decode class: " + clazz.getName(), e);
         }
     }
 

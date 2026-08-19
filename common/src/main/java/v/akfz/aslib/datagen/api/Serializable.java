@@ -5,14 +5,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 
-//T - вывод, типо String или JsonElement и др.
+/**
+ * @param <T> - output, like String or JsonElement and etc
+ */
 public interface Serializable<T> {
     @Nullable ResourceLocation getRLPath();
-    @Nullable Path getPath(); // если isAsset, то ищет по getRLPath, если нет, то по этому
+    @Nullable Path getPath();
 
     T serialize();
 
-    //assets/ (для datagen resources)
+    /**
+     * @return true - find path from getRLPath, false - find path from getPath
+     */
     default boolean isAsset() {
         return true;
     }
@@ -20,7 +24,9 @@ public interface Serializable<T> {
         return "json";
     }
 
-    // для генерации типо src/main ...
+    /**
+     * For generations like src/main...
+     */
     default boolean isSystem() {
         return false;
     }

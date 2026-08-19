@@ -1,8 +1,8 @@
 package v.akfz.aslib.initializer;
 
-import net.minecraft.client.Minecraft;
-
-//Клиент или сервер
+/**
+ * Client or Server 🤕
+ */
 public class SideEnvironment {
     public enum Side {
         Client,
@@ -12,13 +12,14 @@ public class SideEnvironment {
     private static final Side currentSide;
 
     static {
-        currentSide = isClient() ? Side.Client : Side.Server;
+        currentSide = isClientAvailable() ? Side.Client : Side.Server;
     }
 
-    private static boolean isClient() {
+    private static boolean isClientAvailable() {
         try {
-            return Minecraft.getInstance() != null;
-        } catch (Exception e) {
+            Class.forName("net.minecraft.client.Minecraft", false, SideEnvironment.class.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException e) {
             return false;
         }
     }

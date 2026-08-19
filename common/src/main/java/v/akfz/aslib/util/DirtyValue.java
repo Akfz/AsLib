@@ -2,7 +2,10 @@ package v.akfz.aslib.util;
 
 import java.util.Objects;
 
-//в основном для синхрона
+/**
+ * For synchronization server-client or other things
+ * @param <T> anyvalue
+ */
 public class DirtyValue<T> {
     private T value;
     private boolean dirty;

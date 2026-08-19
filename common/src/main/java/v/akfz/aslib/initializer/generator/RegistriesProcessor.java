@@ -96,7 +96,8 @@ public class RegistriesProcessor extends AbstractProcessor {
 
                 List<RegistryFieldData> modFields = new ArrayList<>();
                 for (RegistryFieldData field : allAnnotatedFields) {
-                    if (field.id.startsWith(modId) || field.id.startsWith(modId + ":")) {
+                    boolean matchesMod = field.id.startsWith(modId + ":") || field.id.equals(modId);
+                    if (field.type == RegistryType.COMMAND || matchesMod) {
                         modFields.add(field);
                     }
                 }

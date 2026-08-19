@@ -1,30 +1,32 @@
 package v.akfz.aslib.resourcepack.configpack;
 
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.repository.PackRepository;
+import net.minecraft.server.packs.repository.PackSource;
 import v.akfz.aslib.resourcepack.AddResourcePack;
 import v.akfz.aslib.resourcepack.SimpleFileResourcePack;
 import v.akfz.aslib.resourcepack.configpack.preview.PreviewConfig;
 import v.akfz.aslib.util.GlobalUtils;
 import v.akfz.aslib.util.json.GsonHelper;
 import v.akfz.aslib.util.json.JsonFile;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.packs.PackType;
-import net.minecraft.server.packs.repository.PackRepository;
-import net.minecraft.server.packs.repository.PackSource;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-//Создает ресурспаки на основе конфигов
 public class ConfigPack {
-    private ConfigPack(){}
-    private static boolean isLoaded = false;
+    private ConfigPack() {}
 
-    public static void Init() {
+    private static boolean isLoaded = false;
+    private static final List<LoadedConfigPack> LOADED_PACKS = new ArrayList<>();
+
+    public static synchronized void Init() {
         if (isLoaded) return;
 
         Path startPath = GlobalUtils.getAsLibCFGPath().resolve("cfgPack");
@@ -41,12 +43,35 @@ public class ConfigPack {
         isLoaded = true;
     }
 
+    public static void registerToRepository(PackRepository repo) {
+        Init(); // Гарантируем, что конфиги загружены
+
+        for (LoadedConfigPack packHolder : LOADED_PACKS) {
+            ConfigPackData data = packHolder.data();
+            SimpleFileResourcePack resourcePack = packHolder.resourcePack();
+            String disc = String.join("\n", data.description);
+            String target = data.packTarget != null ? data.packTarget.toLowerCase() : "both";
+
+            // Клиентские ресурс-паки (добавляются только на клиенте)
+            if (GlobalUtils.isClientSide() && (target.equals("client") || target.equals("both"))) {
+                AddResourcePack.addFRP(repo, resourcePack, Component.literal(disc),
+                        data.alwaysEnabled, data.position, data.pinned, PackSource.BUILT_IN, PackType.CLIENT_RESOURCES);
+            }
+
+            // Серверные дата-паки (добавляются и на клиенте, и на сервере)
+            if (target.equals("server") || target.equals("both")) {
+                AddResourcePack.addFRP(repo, resourcePack, Component.literal(disc),
+                        data.alwaysEnabled, data.position, data.pinned, PackSource.BUILT_IN, PackType.SERVER_DATA);
+            }
+        }
+    }
+
     private static void findAndLoadPacks(Path startPath) {
         try (Stream<Path> stream = Files.list(startPath)) {
-            stream.filter(path -> path.toFile().isDirectory()).forEach(path1 -> {
+            stream.filter(path -> path.toFile().isDirectory()).forEach(path -> {
                 try {
-                    if (path1.getFileName().toString().equals("preview")) return;
-                    loadPacks(path1);
+                    if (path.getFileName().toString().equals("preview")) return;
+                    loadPackData(path);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -56,7 +81,7 @@ public class ConfigPack {
         }
     }
 
-    private static void loadPacks(Path path) throws IOException {
+    private static void loadPackData(Path path) throws IOException {
         Path json = null;
         Path rpDir = null;
         try (Stream<Path> stream = Files.list(path)) {
@@ -75,20 +100,7 @@ public class ConfigPack {
         if (data == null) return;
 
         SimpleFileResourcePack resourcePack = ConfigPackRegistry.create(data.type, rpDir, data);
-        String disc = String.join("\n", data.description);
-
-        PackRepository repo = Minecraft.getInstance().getResourcePackRepository();
-        String target = data.packTarget != null ? data.packTarget.toLowerCase() : "both";
-
-        if (target.equals("client") || target.equals("both")) {
-            AddResourcePack.addFRP(repo, resourcePack, Component.literal(disc),
-                    data.alwaysEnabled, data.position, data.pinned, PackSource.BUILT_IN, PackType.CLIENT_RESOURCES);
-        }
-
-        if (target.equals("server") || target.equals("both")) {
-            AddResourcePack.addFRP(repo, resourcePack, Component.literal(disc),
-                    data.alwaysEnabled, data.position, data.pinned, PackSource.BUILT_IN, PackType.SERVER_DATA);
-        }
+        LOADED_PACKS.add(new LoadedConfigPack(data, resourcePack));
     }
 
     private static void createPreview(Path startPath) {
@@ -106,10 +118,13 @@ public class ConfigPack {
                         return startPath.resolve("preview").resolve("howtocreatecfgpack.json");
                     }
                 });
-                if (!startPath.resolve("preview").resolve("resourcePack").toFile().exists()) {
-                    startPath.resolve("preview").resolve("resourcePack").toFile().mkdir();
+                File rpDir = startPath.resolve("preview").resolve("resourcePack").toFile();
+                if (!rpDir.exists()) {
+                    rpDir.mkdir();
                 }
             }
         }
     }
+
+    private record LoadedConfigPack(ConfigPackData data, SimpleFileResourcePack resourcePack) {}
 }

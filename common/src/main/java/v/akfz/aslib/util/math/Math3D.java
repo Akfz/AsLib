@@ -7,8 +7,14 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+/**
+ * 3D math utilities for raycasts, screen projections, and intersections
+ */
 public final class Math3D {
-    // точка пересечения или ближайшая точка на луче к целевой точке в 3D пространстве.
+
+    /**
+     * Finds the closest point on a ray to the target point in 3D space
+     */
     public static Vec3 getClosestPointOnRay(Vec3 rayOrigin, Vec3 rayDirection, Vec3 targetPoint) {
         Vec3 toTarget = targetPoint.subtract(rayOrigin);
         double t = toTarget.dot(rayDirection);
@@ -18,7 +24,9 @@ public final class Math3D {
         return rayOrigin.add(rayDirection.scale(t));
     }
 
-    // пересечение луча со сферой
+    /**
+     * Calculates ray-sphere intersection. Returns distance to hit point or -1 if missed
+     */
     public static double intersectRaySphere(Vec3 rayOrigin, Vec3 rayDir, Vec3 sphereCenter, double sphereRadius) {
         Vec3 oc = rayOrigin.subtract(sphereCenter);
         double b = oc.dot(rayDir);
@@ -33,7 +41,9 @@ public final class Math3D {
         return -1.0;
     }
 
-    // пересечение луча с AABB
+    /**
+     * Calculates ray-AABB (bounding box) intersection. Returns distance or -1 if missed
+     */
     public static double intersectRayAABB(Vec3 rayOrigin, Vec3 rayDir, AABB aabb) {
         double tmin = Double.NEGATIVE_INFINITY;
         double tmax = Double.POSITIVE_INFINITY;
@@ -71,7 +81,9 @@ public final class Math3D {
         return -1.0;
     }
 
-    // луч с экрана
+    /**
+     * Converts 2D screen mouse coordinates into a normalized 3D world ray
+     */
     public static Vec3 getRayFromScreen(double mouseX, double mouseY, int screenWidth, int screenHeight, Matrix4f invProj, Matrix4f invView) {
         float ndcX = (float) ((2.0 * mouseX) / screenWidth - 1.0);
         float ndcY = (float) (1.0 - (2.0 * mouseY) / screenHeight);
@@ -87,7 +99,10 @@ public final class Math3D {
         return new Vec3(rayWorld.x(), rayWorld.y(), rayWorld.z()).normalize();
     }
 
-    @Nullable // луч с мира в экран
+    /**
+     * Projects a 3D world position to 2D screen coordinates. Returns null if behind camera
+     */
+    @Nullable
     public static Vector3f worldToScreen(Vec3 worldPos, Vec3 cameraPos, Matrix4f viewProjMatrix, int screenWidth, int screenHeight) {
         Vec3 relativePos = worldPos.subtract(cameraPos);
         Vector4f clipSpace = new Vector4f((float) relativePos.x, (float) relativePos.y, (float) relativePos.z, 1.0f);
@@ -108,7 +123,9 @@ public final class Math3D {
         return new Vector3f(screenX, screenY, ndcZ);
     }
 
-    // yaw pitch в vec3
+    /**
+     * Converts yaw and pitch angles into a 3D direction vector
+     */
     public static Vec3 getDirectionFromRotation(float yaw, float pitch) {
         float radPitch = pitch * ((float) Math.PI / 180.0F);
         float radYaw = -yaw * ((float) Math.PI / 180.0F);

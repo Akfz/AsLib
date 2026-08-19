@@ -35,28 +35,54 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
+/**
+ * Utility class for dimension management, runtime level creation, and cross-dimensional entity teleportation.
+ */
 public final class DimensionHelper {
 
     private static final Map<ResourceLocation, DimensionConfig> CONFIG_MAP = new ConcurrentHashMap<>();
 
     private DimensionHelper() {}
 
+    /**
+     * Stores internal configuration for dynamic level generation.
+     */
     public static void registerConfig(ResourceLocation id, DimensionBuilder.GeneratorType type, ResourceLocation biome, List<DimensionBuilder.LayerEntry> layers, ResourceLocation noiseSettings, boolean enableStructures) {
         CONFIG_MAP.put(id, new DimensionConfig(type, biome, new ArrayList<>(layers), noiseSettings, enableStructures));
     }
 
+    /**
+     * Creates a new {@link DimensionBuilder} for the specified identifier.
+     */
     public static DimensionBuilder builder(ResourceLocation dimensionId) {
         return DimensionBuilder.create(dimensionId);
     }
 
+    /**
+     * Registers a void dimension with default settings.
+     */
     public static ResourceKey<Level> registerVoid(ResourceLocation dimensionId) {
         return builder(dimensionId).voidPreset().register();
     }
 
+    /**
+     * Initiates a fluent teleport builder for an entity.
+     *
+     * @param entity      Target entity to teleport.
+     * @param targetLevel Target ServerLevel destination.
+     * @return New TeleportBuilder instance.
+     */
     public static TeleportBuilder teleport(Entity entity, ServerLevel targetLevel) {
         return new TeleportBuilder(entity, targetLevel);
     }
 
+    /**
+     * Retrieves an existing ServerLevel or dynamically instantiates and registers a new ServerLevel at runtime.
+     *
+     * @param server      Server instance.
+     * @param dimensionId Dimension ResourceLocation identifier.
+     * @return Active {@link ServerLevel} instance.
+     */
     public static ServerLevel getOrCreateLevel(MinecraftServer server, ResourceLocation dimensionId) {
         if (server == null || dimensionId == null) return null;
 
@@ -74,7 +100,7 @@ public final class DimensionHelper {
 
             if (config != null && config.generatorType == DimensionBuilder.GeneratorType.NOISE) {
                 ResourceLocation noiseKey = config.noiseSettings != null ? config.noiseSettings : NoiseGeneratorSettings.OVERWORLD.location();
-                ResourceLocation biomeKey = config.biome != null ? config.biome : new ResourceLocation("minecraft", "plains");
+                ResourceLocation biomeKey = config.biome != null ? config.biome : Biomes.PLAINS.location();
 
                 HolderGetter<NoiseGeneratorSettings> noiseRegistry = server.registryAccess().lookupOrThrow(Registries.NOISE_SETTINGS);
                 Holder<NoiseGeneratorSettings> noiseHolder = noiseRegistry.getOrThrow(ResourceKey.create(Registries.NOISE_SETTINGS, noiseKey));
@@ -109,7 +135,6 @@ public final class DimensionHelper {
                         }
                     }
                 } else {
-                    // Чистый воздух для Void
                     flatSettings.getLayersInfo().add(new FlatLayerInfo(1, Blocks.AIR));
                 }
 
@@ -156,6 +181,9 @@ public final class DimensionHelper {
         }
     }
 
+    /**
+     * Gets or creates a level from an existing level context.
+     */
     public static ServerLevel getLevel(Level currentLevel, ResourceLocation dimensionId) {
         if (currentLevel != null && currentLevel.getServer() != null) {
             return getOrCreateLevel(currentLevel.getServer(), dimensionId);

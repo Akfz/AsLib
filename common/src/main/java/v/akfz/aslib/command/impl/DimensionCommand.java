@@ -15,6 +15,10 @@ import v.akfz.aslib.world.DimensionHelper;
 import v.akfz.aslib.world.preset.VanillaBiomes;
 import v.akfz.aslib.world.preset.VanillaNoiseSettings;
 
+/**
+ * Example + command for create and teleport to other dimensions\levels
+ * (maybe work with others mod, who dont implementation aslib)
+ */
 public class DimensionCommand extends CommandHelper implements IRegCommand {
 
     @Override

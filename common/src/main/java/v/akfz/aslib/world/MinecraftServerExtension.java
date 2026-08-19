@@ -7,6 +7,9 @@ import net.minecraft.world.level.storage.LevelStorageSource;
 
 import java.util.Map;
 
+/**
+ * Mixin.
+ */
 public interface MinecraftServerExtension {
     Map<ResourceKey<Level>, ServerLevel> aslib$getLevels();
     LevelStorageSource.LevelStorageAccess aslib$getStorageSource();

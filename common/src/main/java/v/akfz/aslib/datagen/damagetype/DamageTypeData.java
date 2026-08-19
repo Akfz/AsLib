@@ -7,6 +7,9 @@ import v.akfz.aslib.datagen.api.DataSerializable;
 
 import java.nio.file.Path;
 
+/**
+ * damage type generator :3
+ */
 public class DamageTypeData extends DataSerializable {
     private String messageId;
     private DamageScaling scaling = DamageScaling.WHEN_CAUSED_BY_LIVING_NON_PLAYER;

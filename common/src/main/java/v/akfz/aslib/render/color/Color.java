@@ -2,6 +2,10 @@ package v.akfz.aslib.render.color;
 
 import java.util.Objects;
 
+/**
+ * Its simplifies features with colors
+ * if you use idea you can create with Color(java.awt.Color color) for color picker...
+ */
 public class Color {
     private double red;
     private double green;

@@ -12,7 +12,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-// базовый правайдер для генерации DataSerializable
+/**
+ * Base provider for DataSerializable generation
+ */
 public abstract class DataProvider {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
@@ -56,13 +58,17 @@ public abstract class DataProvider {
         return subprojectPath;
     }
 
-    // запуск, вызывать единожды (если не было ошибок)
-    //НЕ ЗАПУСКАТЬ В МАЙНКРАФТЕ, ТОЛЬКО ДЛЯ DEV!
+    /**
+     * "DO NOT RUN IN MINECRAFT; FOR DEV USE ONLY!"
+     */
     public void runToMain(String subProjectName) {
         runInternal(subProjectName, Path.of("src", "main", "resources"));
     }
 
-    // Генерация в src/generated/resources
+    /**
+     * Generation to src/main/generated/resources..
+     * @param subProjectName generate to gradle subprojects (like forge, fabric and etc)
+     */
     public void run(String subProjectName) {
         runInternal(subProjectName, Path.of("src", "generated", "resources"));
     }

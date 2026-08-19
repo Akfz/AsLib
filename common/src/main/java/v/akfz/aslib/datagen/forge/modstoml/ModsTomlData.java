@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
+/**
+ * fabric mod json, but forge
+ */
 public class ModsTomlData implements Serializable<String> {
 
     private String modLoader = "javafml";

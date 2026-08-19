@@ -1,7 +1,6 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven { url = 'https://jitpack.io' }
         maven { url = 'https://maven.neoforged.net/releases' }
         maven { url = 'https://maven.parchmentmc.org' }
         maven { url = 'https://maven.minecraftforge.net/' }
@@ -34,8 +33,6 @@ def isVersionAtLeast = { String current, String target ->
     }
     return true
 }
-
-//include 'bridge'  // модуль для передачи кода deprecated
 
 include 'common'
 include 'fabric'

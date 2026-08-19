@@ -9,7 +9,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-//Генерирует blockstates из BlockStateVariant 🐱
+/**
+ * Generates blockstates from BlockStateVariant 🐱
+ */
 public class BlockStateData extends DataSerializable {
     private final List<BlockStateVariant> variants = new ArrayList<>();
 

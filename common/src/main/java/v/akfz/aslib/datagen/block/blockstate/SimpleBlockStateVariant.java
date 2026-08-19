@@ -4,7 +4,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.resources.ResourceLocation;
 
-// Генерирует blockstate без поворотов и т.д, только статичный рендер модели
+/**
+ * Generates simplest blockstate, without rotations etc., only static render model
+ */
 public class SimpleBlockStateVariant implements BlockStateVariant {
     private final String key;
     private final ResourceLocation modelId;

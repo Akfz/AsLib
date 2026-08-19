@@ -7,6 +7,9 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * Fluent builder for executing entity teleportation across positions and dimensions.
+ */
 public class TeleportBuilder {
     private final Entity entity;
     private final ServerLevel targetLevel;
@@ -28,37 +31,60 @@ public class TeleportBuilder {
         }
     }
 
+    /**
+     * Sets target coordinates.
+     */
     public TeleportBuilder pos(double x, double y, double z) {
         this.pos = new Vec3(x, y, z);
         return this;
     }
 
+    /**
+     * Sets target position vector.
+     */
     public TeleportBuilder pos(Vec3 pos) {
         if (pos != null) this.pos = pos;
         return this;
     }
 
+    /**
+     * Sets target yaw and pitch rotation.
+     */
     public TeleportBuilder rot(float yaw, float pitch) {
         this.yaw = yaw;
         this.pitch = pitch;
         return this;
     }
 
+    /**
+     * Sets whether fall distance should be reset to zero upon teleportation.
+     */
     public TeleportBuilder resetFall(boolean reset) {
         this.resetFallDistance = reset;
         return this;
     }
 
+    /**
+     * Sets whether entity velocity should be preserved after teleportation.
+     */
     public TeleportBuilder keepVelocity(boolean keep) {
         this.keepVelocity = keep;
         return this;
     }
 
+    /**
+     * Sets a sound event to play at destination.
+     */
     public TeleportBuilder playSound(SoundEvent sound) {
         this.sound = sound;
         return this;
     }
 
+    /**
+     * Executes teleportation.
+     *
+     * @return Teleported entity instance (may differ if dimension change recreates entity).
+     */
     public Entity execute() {
         if (entity == null || targetLevel == null) return null;
 

@@ -10,7 +10,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-// генерирует sounds.json, нужно списком передавать звуки ( или через SoundRegistry )
+/**
+ * Generates sounds.json, sounds must be provided as a list (or via SoundRegistry).
+ */
 public class SoundData extends DataSerializable {
     private final List<SoundDataEntry> entries = new ArrayList<>();
     public SoundData(String modId) {

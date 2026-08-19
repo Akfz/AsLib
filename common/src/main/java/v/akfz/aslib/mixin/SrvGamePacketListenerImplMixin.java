@@ -17,11 +17,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class SrvGamePacketListenerImplMixin {
     @Shadow
     public ServerPlayer player;
-    @Inject(
-            method = {"handleCustomPayload"},
-            at = {@At("HEAD")},
-            cancellable = true
-    )
+
+    @Inject(method = "handleCustomPayload", at = @At("HEAD"), cancellable = true)
     private void aslib$onCustomPayload(ServerboundCustomPayloadPacket packet, CallbackInfo ci) {
         ResourceLocation id = packet.getIdentifier();
         if (AsLibNetworking.REGISTRY.isPresent(id)) {
@@ -29,11 +26,13 @@ public class SrvGamePacketListenerImplMixin {
             Packet decodedPacket = AsLibNetworking.REGISTRY.get(id).decoder().decode(buf);
             ServerPlayer sender = this.player;
 
-            try {
-                AsLibNetworking.HANDLER.handle(decodedPacket, sender);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            sender.getServer().execute(() -> {
+                try {
+                    AsLibNetworking.HANDLER.handle(decodedPacket, sender);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
 
             ci.cancel();
         }

@@ -5,6 +5,9 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Guide {@link Event}
+ */
 public final class EventBus {
 
     private final Map<Class<?>, EventHandler<?>[]> handlers =
@@ -94,13 +97,14 @@ public final class EventBus {
         return result.toArray(EventHandler[]::new);
     }
 
+    @SuppressWarnings("unchecked")
     private <E extends Event> EventInvoker<E> createInvoker(
             Object listener,
             Method method,
             Class<E> eventClass
     ) throws Throwable {
 
-        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(listener.getClass(), MethodHandles.lookup());
 
         MethodHandle handle = lookup.unreflect(method);
 

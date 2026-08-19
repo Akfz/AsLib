@@ -2,6 +2,9 @@ package v.akfz.aslib.world.preset;
 
 import net.minecraft.resources.ResourceLocation;
 
+/**
+ * Preset enum representing standard vanilla biome identifiers.
+ */
 public enum VanillaBiomes {
     THE_VOID("the_void"),
     PLAINS("plains"),

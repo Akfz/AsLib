@@ -2,7 +2,9 @@ package v.akfz.aslib.datagen.api;
 
 import net.minecraft.resources.ResourceLocation;
 
-//DataSerializable, но вместо JsonElement - String (для не json файлов)
+/**
+ * its {@link DataSerializable}, but String instead of JsonElement
+ */
 public abstract class DataStringSerializable implements Serializable<String> {
     private final ResourceLocation path;
 

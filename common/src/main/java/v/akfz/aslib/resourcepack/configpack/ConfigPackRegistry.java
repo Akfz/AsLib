@@ -5,6 +5,9 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Factory registry for instantiating custom {@link SimpleFileResourcePack} instances by type.
+ */
 public final class ConfigPackRegistry {
     private ConfigPackRegistry() {}
 

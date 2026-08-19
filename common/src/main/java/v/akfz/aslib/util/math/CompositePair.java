@@ -7,6 +7,10 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+/**
+ * simplifies data management with stacking effects, or something about
+ * @param <T> any number value (float,double,short,long,byte,integer,double)
+ */
 @SuppressWarnings("unchecked")
 public class CompositePair<T extends Number> {
 

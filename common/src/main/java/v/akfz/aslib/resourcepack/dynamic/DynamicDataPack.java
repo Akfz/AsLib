@@ -23,6 +23,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * In-memory {@link PackResources} implementation for dynamically registering virtual data pack JSON files at runtime.
+ */
 public class DynamicDataPack implements PackResources {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private static final DynamicDataPack INSTANCE = new DynamicDataPack();
@@ -38,12 +41,18 @@ public class DynamicDataPack implements PackResources {
         return INSTANCE;
     }
 
+    /**
+     * Adds virtual JSON data to the dynamic data pack.
+     */
     public static void addData(ResourceLocation location, JsonElement json) {
         byte[] bytes = GSON.toJson(json).getBytes(StandardCharsets.UTF_8);
         INSTANCE.virtualFiles.put(location, bytes);
         INSTANCE.namespaces.add(location.getNamespace());
     }
 
+    /**
+     * Registers the dynamic data pack into the provided repository.
+     */
     public static void registerToRepository(PackRepository repository) {
         if (REGISTERED_REPOS.add(repository)) {
             AddResourcePack.addServerData(

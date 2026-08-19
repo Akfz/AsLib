@@ -11,6 +11,9 @@ import net.minecraft.client.gui.components.Renderable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Simple tooltip
+ */
 public abstract class AbstractToolTip implements Renderable {
     protected int x, y, width, height;
     protected boolean visible = true;
@@ -43,17 +46,20 @@ public abstract class AbstractToolTip implements Renderable {
         int renderX = mouseX + 12;
         int renderY = mouseY - 12;
 
-        int screenWidth = Minecraft.getInstance().getWindow().getScreenWidth();
-        if (renderX + totalWidth > screenWidth) {
-            renderX = mouseX - totalWidth - 8;
+        int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+        int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+
+        if (renderX + totalWidth > screenWidth - 4) {
+            renderX = mouseX - totalWidth - 4;
+        }
+        if (renderX < 4) {
+            renderX = 4;
         }
 
-        int screenHeight = Minecraft.getInstance().getWindow().getScreenHeight();
-        if (renderY + totalHeight > screenHeight) {
+        if (renderY + totalHeight > screenHeight - 4) {
             renderY = screenHeight - totalHeight - 4;
         }
-
-        if (renderY < 0) {
+        if (renderY < 4) {
             renderY = 4;
         }
 

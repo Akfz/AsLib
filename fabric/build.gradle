@@ -37,11 +37,6 @@ loom {
             runDir "run"
         }
     }
-    mods {
-        "${project.mod_id}" {
-            sourceSet sourceSets.main
-        }
-    }
 }
 
 tasks.named('processResources', ProcessResources).configure {

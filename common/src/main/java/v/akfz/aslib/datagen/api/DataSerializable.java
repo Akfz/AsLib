@@ -3,7 +3,9 @@ package v.akfz.aslib.datagen.api;
 import com.google.gson.JsonElement;
 import net.minecraft.resources.ResourceLocation;
 
-//Класс для генерации файла и пути
+/**
+ * "Class for generating a file and a path"
+ */
 public abstract class DataSerializable implements Serializable<JsonElement> {
     private final ResourceLocation path;
 
@@ -16,6 +18,6 @@ public abstract class DataSerializable implements Serializable<JsonElement> {
         return this.path;
     }
 
-    @Override // реализация сериализации
+    @Override
     public abstract JsonElement serialize();
 }

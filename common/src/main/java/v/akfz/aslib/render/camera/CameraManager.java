@@ -11,6 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Camera helper, idk why, but in my mod ts is needed
+ * rotSpeed, posSpeed its interpolation speed
+ */
 public class CameraManager {
     public static CompositePair<Float> XRots = CompositePair.empty(Float.class);
     public static CompositePair<Float> YRots = CompositePair.empty(Float.class);

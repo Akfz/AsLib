@@ -9,28 +9,36 @@ import v.akfz.aslib.network.api.PacketEncoder;
 import v.akfz.aslib.network.api.PacketHandler;
 import net.minecraft.resources.ResourceLocation;
 
+/**
+ * Thread-safe registry for managing network packets, their codecs, and handlers.
+ */
 public final class PacketRegistry {
     private final Map<ResourceLocation, PacketEntry<?>> byId = new ConcurrentHashMap<>();
     private final Map<Class<? extends Packet>, PacketEntry<?>> byClass = new ConcurrentHashMap<>();
 
+    /**
+     * Registers a packet with explicit encoder, decoder, and handler.
+     */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public <T extends Packet> void register(Class<T> type, PacketEncoder<T> encoder, PacketDecoder<T> decoder, PacketHandler<T> handler) {
         ResourceLocation resourceLocation = this.getResourceLocation(type);
         if (resourceLocation == null) {
-            throw new IllegalArgumentException("ResourceLocation is null");
+            throw new IllegalArgumentException("ResourceLocation is missing on class: " + type.getName());
         } else {
             this.register(new PacketEntry(resourceLocation, type, encoder, decoder, handler));
         }
     }
 
-    //только если encoder и decoder прописан в пакете
+    /**
+     * Registers a packet using its internal encoder/decoder implementation.
+     */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public <T extends Packet> void register(T type, PacketHandler<T> handler) {
-        ResourceLocation resourceLocation = this.getResourceLocation(type.getClass());
+    public <T extends Packet> void register(T dummyInstance, PacketHandler<T> handler) {
+        ResourceLocation resourceLocation = this.getResourceLocation(dummyInstance.getClass());
         if (resourceLocation == null) {
-            throw new IllegalArgumentException("ResourceLocation is null");
+            throw new IllegalArgumentException("ResourceLocation is missing on class: " + dummyInstance.getClass().getName());
         } else {
-            this.register(new PacketEntry(resourceLocation, type, handler));
+            this.register(new PacketEntry(resourceLocation, dummyInstance, handler));
         }
     }
 
@@ -48,19 +56,17 @@ public final class PacketRegistry {
     private ResourceLocation getResourceLocation(Class<? extends Packet> clazz) {
         if (clazz.isAnnotationPresent(NetworkPacket.class)) {
             NetworkPacket annotation = clazz.getAnnotation(NetworkPacket.class);
-            String value = annotation.value();
-            return ResourceLocation.tryParse(value);
-        } else {
-            return null;
+            return ResourceLocation.tryParse(annotation.value());
         }
+        return null;
     }
 
     public boolean isPresent(ResourceLocation id) {
-        return this.byId.get(id) != null;
+        return this.byId.containsKey(id);
     }
 
     public boolean isPresent(Class<?> type) {
-        return this.byClass.get(type) != null;
+        return this.byClass.containsKey(type);
     }
 
     public PacketEntry<?> get(ResourceLocation id) {

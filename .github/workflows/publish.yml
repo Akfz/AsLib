@@ -1,11 +1,14 @@
-name: Publish Maven
+name: AsLib
 
 on:
   push:
     branches:
       - 'Release_*'
-      - 'Dev_*'      
-  workflow_dispatch:   
+      - 'Dev_*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   publish:
@@ -25,8 +28,15 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      - name: Determine Version from Branch Name
+        id: set_version
+        run: |
+          VERSION="${GITHUB_REF_NAME}-SNAPSHOT"
+          echo "ASLIB_VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Publishing version: ${VERSION}"
+
       - name: Build and Publish Common to local folder
-        run: ./gradlew :common:publish -Ppublishing-dir=build/repo
+        run: ./gradlew :common:publish -Ppublishing-dir=build/repo -Pmod_version=${{ env.ASLIB_VERSION }}
 
       - name: Deploy Maven to branch
         uses: jamesives/github-pages-deploy-action@v4

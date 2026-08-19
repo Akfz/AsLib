@@ -16,8 +16,13 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 
+/**
+ * Helper class for bundling multiple network packets into a single payload stream.
+ * Automatically splits payload chunks if total size exceeds 30 KB.
+ */
 public final class BundleBuilder {
     private static final AtomicLong ID_GENERATOR = new AtomicLong(0);
+    private static final int MAX_PAYLOAD_SIZE = 30000;
 
     private final PacketRegistry registry;
     private final PacketCodec codec;
@@ -33,25 +38,35 @@ public final class BundleBuilder {
         this.codec = AsLibNetworking.CODEC;
     }
 
+    /**
+     * Adds a packet to the bundle.
+     */
     public BundleBuilder add(Packet packet) {
         this.packets.add(new PacketHolder<>(packet, null, null));
         return this;
     }
 
+    /**
+     * Adds a packet with inline custom encoder and decoder.
+     */
     public <T extends Packet> BundleBuilder add(T packet, PacketEncoder<T> encoder, PacketDecoder<T> decoder) {
         this.packets.add(new PacketHolder<>(packet, encoder, decoder));
         return this;
     }
 
+    /**
+     * Serializes and transmits all queued packets via the provided sender callback.
+     *
+     * @param sender Callback that accepts the generated header and payload packets.
+     */
     @SuppressWarnings("unchecked")
     public void send(BiConsumer<Packet, Packet> sender) {
-        if (packets.size() < 2) {
-            throw new IllegalStateException("The bundle must contain at least 2 packets!");
+        if (packets.isEmpty()) {
+            return;
         }
 
-        long bundleId = ID_GENERATOR.incrementAndGet();
-        List<BundleHeaderPacket.Entry> entries = new ArrayList<>();
-        FriendlyByteBuf dataBuf = new FriendlyByteBuf(Unpooled.buffer());
+        List<BundleHeaderPacket.Entry> currentEntries = new ArrayList<>();
+        FriendlyByteBuf currentDataBuf = new FriendlyByteBuf(Unpooled.buffer());
 
         try {
             for (PacketHolder<?> holder : packets) {
@@ -77,29 +92,43 @@ public final class BundleBuilder {
                     }
 
                     int length = singleBuf.readableBytes();
-
                     PacketEntry<?> entry = registry.get(packet.getClass());
                     if (entry == null) {
-                        throw new IllegalStateException("The package is not registered: " + packet.getClass());
+                        throw new IllegalStateException("Packet is not registered: " + packet.getClass());
                     }
 
-                    entries.add(new BundleHeaderPacket.Entry(entry.id(), length));
-                    dataBuf.writeBytes(singleBuf);
+                    if (currentDataBuf.readableBytes() > 0 && currentDataBuf.readableBytes() + length > MAX_PAYLOAD_SIZE) {
+                        flushBundle(currentEntries, currentDataBuf, sender);
+                        currentEntries = new ArrayList<>();
+                        currentDataBuf = new FriendlyByteBuf(Unpooled.buffer());
+                    }
+
+                    currentEntries.add(new BundleHeaderPacket.Entry(entry.id(), length));
+                    currentDataBuf.writeBytes(singleBuf);
                 } finally {
                     singleBuf.release();
                 }
             }
 
-            byte[] rawData = new byte[dataBuf.readableBytes()];
-            dataBuf.readBytes(rawData);
-
-            BundleHeaderPacket header = new BundleHeaderPacket(bundleId, entries);
-            BundlePayloadPacket payload = new BundlePayloadPacket(bundleId, rawData);
-
-            sender.accept(header, payload);
+            if (currentDataBuf.readableBytes() > 0) {
+                flushBundle(currentEntries, currentDataBuf, sender);
+            }
         } finally {
-            dataBuf.release();
+            if (currentDataBuf.refCnt() > 0) {
+                currentDataBuf.release();
+            }
         }
+    }
+
+    private void flushBundle(List<BundleHeaderPacket.Entry> entries, FriendlyByteBuf dataBuf, BiConsumer<Packet, Packet> sender) {
+        long bundleId = ID_GENERATOR.incrementAndGet();
+        byte[] rawData = new byte[dataBuf.readableBytes()];
+        dataBuf.readBytes(rawData);
+
+        BundleHeaderPacket header = new BundleHeaderPacket(bundleId, entries);
+        BundlePayloadPacket payload = new BundlePayloadPacket(bundleId, rawData);
+
+        sender.accept(header, payload);
     }
 
     private record PacketHolder<T extends Packet>(

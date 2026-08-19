@@ -6,12 +6,18 @@ import net.minecraft.commands.CommandSourceStack;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * you can register commands here with addCommand
+ */
 public final class CommandHandler {
     private CommandHandler() {}
 
     private static final List<IRegCommand> commands = new ArrayList<>();
     private static CommandDispatcher<CommandSourceStack> activeDispatcher;
 
+    /**
+     * dont set, it set from mixin
+     */
     public static synchronized void setDispatcher(CommandDispatcher<CommandSourceStack> dispatcher) {
         activeDispatcher = dispatcher;
 

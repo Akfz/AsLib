@@ -15,6 +15,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * json
+ */
 public final class GsonHelper {
     public static final Gson DEFAULT_GSON = new GsonBuilder()
             .setPrettyPrinting()

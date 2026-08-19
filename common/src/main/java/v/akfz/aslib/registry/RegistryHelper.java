@@ -20,11 +20,14 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.function.Supplier;
 
+/**
+ * Utility class providing helper methods for instantiating Minecraft registry objects
+ * such as entities, block entities, sound events, properties, and creative tabs.
+ */
 public final class RegistryHelper {
 
     private RegistryHelper() {}
 
-    // ебанный рот
     private static final Class<?> SUPPLIER_CLASS;
     private static final Method OF_METHOD;
 
@@ -34,7 +37,7 @@ public final class RegistryHelper {
         try {
             String[] possibleNames = {
                     "net.minecraft.world.level.block.entity.BlockEntityType$BlockEntitySupplier",
-                    "net.minecraft.block.entity.BlockEntityType$BlockEntityFactory"              // хз зачем, но пусть будет и yarn
+                    "net.minecraft.block.entity.BlockEntityType$BlockEntityFactory"
             };
 
             for (String name : possibleNames) {
@@ -56,11 +59,27 @@ public final class RegistryHelper {
         OF_METHOD = tempMethod;
     }
 
+    /**
+     * Functional interface used to construct new {@link BlockEntity} instances.
+     *
+     * @param <T> Type of the block entity.
+     */
     @FunctionalInterface
     public interface BlockEntityFactory<T extends BlockEntity> {
         T create(BlockPos pos, BlockState state);
     }
 
+    /**
+     * Creates a standard {@link EntityType} builder and builds the entity type.
+     *
+     * @param factory  Factory creating the entity instance.
+     * @param category Classification category for spawning and behavior.
+     * @param width    Hitbox width.
+     * @param height   Hitbox height.
+     * @param key      Entity type registry path key.
+     * @param <T>      Entity type class.
+     * @return Constructed {@link EntityType}.
+     */
     public static <T extends Entity> EntityType<T> createEntity(
             EntityType.EntityFactory<T> factory,
             MobCategory category,
@@ -73,6 +92,19 @@ public final class RegistryHelper {
                 .build(key);
     }
 
+    /**
+     * Creates an {@link EntityType} with customized network tracking range and update interval settings.
+     *
+     * @param factory        Factory creating the entity instance.
+     * @param category       Classification category.
+     * @param width          Hitbox width.
+     * @param height         Hitbox height.
+     * @param updateInterval Tick frequency of entity position updates sent to clients.
+     * @param trackingRange  Distance in chunks at which players receive entity updates.
+     * @param key            Entity type registry path key.
+     * @param <T>            Entity type class.
+     * @return Constructed {@link EntityType}.
+     */
     public static <T extends Entity> EntityType<T> createEntity(
             EntityType.EntityFactory<T> factory,
             MobCategory category,
@@ -89,6 +121,15 @@ public final class RegistryHelper {
                 .build(key);
     }
 
+    /**
+     * Dynamically instantiates a {@link BlockEntityType} using dynamic proxying
+     * to ensure compatibility across different mapping environments (Mojang / Yarn).
+     *
+     * @param factory Factory creating the block entity instance.
+     * @param blocks  Valid blocks bound to this block entity type.
+     * @param <T>      Block entity type class.
+     * @return Constructed {@link BlockEntityType}.
+     */
     @SuppressWarnings("unchecked")
     public static <T extends BlockEntity> BlockEntityType<T> createBlockEntity(
             BlockEntityFactory<T> factory,
@@ -112,26 +153,65 @@ public final class RegistryHelper {
         }
     }
 
+    /**
+     * Creates a variable-range {@link SoundEvent} from a string identifier.
+     *
+     * @param id String representation of the sound ResourceLocation.
+     * @return New {@link SoundEvent}.
+     */
     public static SoundEvent createSound(String id) {
         return createSound(new ResourceLocation(id));
     }
 
+    /**
+     * Creates a variable-range {@link SoundEvent}.
+     *
+     * @param rl ResourceLocation identifier of the sound.
+     * @return New {@link SoundEvent}.
+     */
     public static SoundEvent createSound(ResourceLocation rl) {
         return SoundEvent.createVariableRangeEvent(rl);
     }
 
+    /**
+     * Creates a fixed-range {@link SoundEvent}.
+     *
+     * @param rl    ResourceLocation identifier of the sound.
+     * @param range Maximum audible distance in blocks.
+     * @return New {@link SoundEvent}.
+     */
     public static SoundEvent createFixedSound(ResourceLocation rl, float range) {
         return SoundEvent.createFixedRangeEvent(rl, range);
     }
 
+    /**
+     * Instantiates new default {@link BlockBehaviour.Properties}.
+     *
+     * @return New block properties instance.
+     */
     public static BlockBehaviour.Properties blockProperties() {
         return BlockBehaviour.Properties.of();
     }
 
+    /**
+     * Instantiates new default {@link Item.Properties}.
+     *
+     * @return New item properties instance.
+     */
     public static Item.Properties itemProperties() {
         return new Item.Properties();
     }
 
+    /**
+     * Builds and returns a new {@link CreativeModeTab}.
+     *
+     * @param row          Tab row placement in the creative menu.
+     * @param column       Tab column placement in the creative menu.
+     * @param title        Displayed tab name.
+     * @param icon         Supplier providing the tab icon stack.
+     * @param displayItems Display items generator logic.
+     * @return Constructed {@link CreativeModeTab}.
+     */
     public static CreativeModeTab createCreativeTab(
             CreativeModeTab.Row row,
             int column,

@@ -3,7 +3,9 @@ package v.akfz.aslib.datagen.block.blockstate;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-//Генерирует blockstate с кастомными данными
+/**
+ * Generates blockstates with custom data
+ */
 public class CustomBlockStateVariant implements BlockStateVariant {
     private final String key;
     private final JsonObject customData;

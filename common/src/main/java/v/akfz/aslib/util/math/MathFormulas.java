@@ -5,6 +5,9 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Some mathformolas
+ */
 public class MathFormulas {
     public static double exponentialSmooth(double current, double target, double rate, double deltaTime) {
         double alpha = 1.0 - Math.exp(-rate * deltaTime);

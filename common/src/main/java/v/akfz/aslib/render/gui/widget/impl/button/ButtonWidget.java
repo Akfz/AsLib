@@ -8,6 +8,9 @@ import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.function.BiConsumer;
 
+/**
+ * im too lazy to write in any widget javadoc..
+ */
 public class ButtonWidget extends AbstractWidget {
     private static final RenderPart DEFAULT_RENDERER = new DefaultButtonRenderer();
 

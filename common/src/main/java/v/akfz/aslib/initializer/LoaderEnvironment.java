@@ -1,6 +1,8 @@
 package v.akfz.aslib.initializer;
 
-//quilt currently not supported.
+/**
+ * quilt is not supported; I see no point in adding it.
+ */
 public final class LoaderEnvironment {
     public enum Loader {
         FORGE,

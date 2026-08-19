@@ -3,6 +3,9 @@ package v.akfz.aslib.render.gui.widget.api.render;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * For render part, for data transmission
+ */
 public class RenderExtras {
     private final Map<String, RenderObject> data = new HashMap<>();
 
@@ -25,7 +28,7 @@ public class RenderExtras {
         }
 
         throw new ClassCastException(String.format(
-                "Не удалось привести параметр '%s' из типа %s к запрашиваемому типу %s",
+                "Failed to convert parameter '%s' from type %s to the requested type %s",
                 name, wrapper.objectClass().getName(), type.getName()
         ));
     }

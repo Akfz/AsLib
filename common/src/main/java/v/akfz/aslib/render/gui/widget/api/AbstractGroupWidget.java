@@ -7,6 +7,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * For group (like scroll widgets or idk map widget, anything!)
+ */
 public abstract class AbstractGroupWidget extends AbstractWidget implements ContainerEventHandler {
     protected final List<AbstractWidget> children = new ArrayList<>();
     private GuiEventListener focusedChild = null;
