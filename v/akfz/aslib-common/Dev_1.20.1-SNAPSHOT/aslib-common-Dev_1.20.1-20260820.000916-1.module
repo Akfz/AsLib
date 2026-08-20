@@ -69,10 +69,10 @@
           "name": "aslib-common-Dev_1.20.1-SNAPSHOT-sources.jar",
           "url": "aslib-common-Dev_1.20.1-SNAPSHOT-sources.jar",
           "size": 146059,
-          "sha512": "9b2ce79d33a901f6330098d998300feccfc32a15a69e4ded976ce18a1e4cefc9c15a6ea55e761ecf2e4e6b53279e43df3e1f48a963fd80b9e71fc8f10d3e83c3",
-          "sha256": "c910944af395ae93a410d515fa042663403f0c67593e44b4a518b50e9e3cbb34",
-          "sha1": "854c298473d164404afdde72fd974c872f1c6934",
-          "md5": "14fc5c77cd793663bc84d0e0a810ecca"
+          "sha512": "a38df0fbb4077883824470449b1274ac44d8e0f89a9333cd00a261cdbe56c8345a45fbc7ba2922e407ceb5fc0c001f38b0c764881622d5104fefc4b3bc55bf24",
+          "sha256": "17365ec85c52663455ea5f72ec63a92b80e98915136982e20ba247ac9e650604",
+          "sha1": "570b0ff8ad0f05b9f45ae88ecf3b110b53ad66df",
+          "md5": "9dc83f699cd3ea8a27a7026fea1a88b6"
         }
       ]
     },
@@ -89,10 +89,10 @@
           "name": "aslib-common-Dev_1.20.1-SNAPSHOT-javadoc.jar",
           "url": "aslib-common-Dev_1.20.1-SNAPSHOT-javadoc.jar",
           "size": 709115,
-          "sha512": "8c933241c7e28d43db32d161d7e8ce1bbcab44bd90af35cfcc90b50f10ef3b8fa52147f49c9a8a962dfb4802c15feb745887068b08ae10351a13406bbedefcaa",
-          "sha256": "fcd8f777db7c2c3be7ba312a13bcac9cb3b43944930aa6f6721fc3f3e7d83426",
-          "sha1": "4c3cb63e6bcbc6afb8cb28f724c2d6a815b31e43",
-          "md5": "23b94006c5feb78d46677c4a44e37fb4"
+          "sha512": "98fc61daf3e3d7c39f8db848b54fa80f9b493b372942c915a4efba1edc41f9857049a0b794cec4ffb22d06976e9dccb7ef95673e2e74b531bb8a30709ed8bac5",
+          "sha256": "d97fc8965ba1562fe0a75f5b197c434a2f8b0a58396dafbfdb81e07259fe7060",
+          "sha1": "955a04e76ded5d24d6968d8fd19e99530358823b",
+          "md5": "9db181e0897ca072c7c8ce94690002dd"
         }
       ]
     }
