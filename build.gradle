@@ -41,7 +41,14 @@ allprojects {
 }
 
 subprojects {
+    apply plugin: 'maven-publish'
+
     def javaVer = Integer.parseInt(project.findProperty('java_version') ?: '17')
+
+    java {
+        withSourcesJar()
+        withJavadocJar()
+    }
 
     tasks.withType(JavaCompile).configureEach {
         it.options.encoding = 'UTF-8'
@@ -67,11 +74,6 @@ subprojects {
     }
 
     repositories {
-        if (project.hasProperty('aslib_version') && project.aslib_version) {
-            maven {
-                url = 'https://raw.githubusercontent.com/Akfz/AsLib/maven/'
-            }
-        }
         if (project.hasProperty('dbuild_version') && project.dbuild_version) {
             maven {
                 url = 'https://raw.githubusercontent.com/Akfz/DBuild/maven/'
@@ -80,12 +82,25 @@ subprojects {
     }
 
     dependencies {
-        if (project.hasProperty('aslib_version') && project.aslib_version) {
-            implementation "v.akfz:aslib-common:${project.aslib_version}"
-        }
         if (project.hasProperty('dbuild_version') && project.dbuild_version) {
             compileOnly "v.akfz:DBuild:${project.dbuild_version}"
             annotationProcessor("v.akfz:DBuild:${project.dbuild_version}")
+        }
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                artifactId = "${project.archives_base_name}-${project.name}"
+                from components.java
+            }
+        }
+        repositories {
+            if (project.hasProperty('publishing-dir')) {
+                maven {
+                    url = rootProject.file(project.property('publishing-dir'))
+                }
+            }
         }
     }
 
@@ -155,7 +170,6 @@ abstract class ResourceCleanerService implements BuildService<BuildServiceParame
         }
     }
 }
-
 
 tasks.register('cleanLibs') {
     group = 'build'

@@ -1,15 +1,9 @@
 plugins {
     id 'fabric-loom'
-    id 'maven-publish'
 }
 
 base {
     archivesName = "${project.archives_base_name}-common"
-}
-
-java {
-    withSourcesJar()
-    withJavadocJar()
 }
 
 repositories {
@@ -69,22 +63,6 @@ tasks.named('javadoc', Javadoc).configure {
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from sourceSets.main.output
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId = "${project.archives_base_name}-common"
-            from components.java
-        }
-    }
-    repositories {
-        if (project.hasProperty('publishing-dir')) {
-            maven {
-                url = rootProject.file(project.property('publishing-dir'))
-            }
-        }
-    }
 }
 
 tasks.withType(JavaCompile).configureEach {
