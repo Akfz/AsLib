@@ -91,8 +91,13 @@ subprojects {
     publishing {
         publications {
             mavenJava(MavenPublication) {
-                artifactId = "${project.archives_base_name}-fabric"
-                from components.java
+                artifactId = "${project.archives_base_name}-${project.name}"
+
+                artifact(tasks.named('jar')) {
+                    classifier = ''
+                }
+                artifact tasks.sourcesJar
+                artifact tasks.javadocJar
             }
         }
         repositories {
