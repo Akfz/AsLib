@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata modelVersion="1.1.0">
   <groupId>v.akfz</groupId>
-  <artifactId>aslib-fabric</artifactId>
+  <artifactId>aslib-common</artifactId>
   <versioning>
     <lastUpdated>20260820003215</lastUpdated>
     <snapshot>
@@ -10,12 +10,12 @@
     </snapshot>
     <snapshotVersions>
       <snapshotVersion>
+        <classifier>sources</classifier>
         <extension>jar</extension>
         <value>Dev_1.20.1-20260820.003215-1</value>
         <updated>20260820003215</updated>
       </snapshotVersion>
       <snapshotVersion>
-        <classifier>sources</classifier>
         <extension>jar</extension>
         <value>Dev_1.20.1-20260820.003215-1</value>
         <updated>20260820003215</updated>

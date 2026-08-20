@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata>
   <groupId>v.akfz</groupId>
-  <artifactId>aslib-fabric</artifactId>
+  <artifactId>aslib-common</artifactId>
   <versioning>
     <latest>Dev_1.20.1-SNAPSHOT</latest>
     <versions>
