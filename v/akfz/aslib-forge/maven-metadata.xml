@@ -3,10 +3,10 @@
   <groupId>v.akfz</groupId>
   <artifactId>aslib-forge</artifactId>
   <versioning>
-    <latest>Dev_1.20.1-SNAPSHOT</latest>
+    <latest>Release_1.20.1-SNAPSHOT</latest>
     <versions>
-      <version>Dev_1.20.1-SNAPSHOT</version>
+      <version>Release_1.20.1-SNAPSHOT</version>
     </versions>
-    <lastUpdated>20260820022502</lastUpdated>
+    <lastUpdated>20260820022834</lastUpdated>
   </versioning>
 </metadata>

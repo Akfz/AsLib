@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>v.akfz</groupId>
+  <artifactId>aslib-common</artifactId>
+  <versioning>
+    <lastUpdated>20260820022805</lastUpdated>
+    <snapshot>
+      <timestamp>20260820.022805</timestamp>
+      <buildNumber>1</buildNumber>
+    </snapshot>
+    <snapshotVersions>
+      <snapshotVersion>
+        <classifier>javadoc</classifier>
+        <extension>jar</extension>
+        <value>Release_1.20.1-20260820.022805-1</value>
+        <updated>20260820022805</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>Release_1.20.1-20260820.022805-1</value>
+        <updated>20260820022805</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <classifier>sources</classifier>
+        <extension>jar</extension>
+        <value>Release_1.20.1-20260820.022805-1</value>
+        <updated>20260820022805</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>Release_1.20.1-20260820.022805-1</value>
+        <updated>20260820022805</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+  <version>Release_1.20.1-SNAPSHOT</version>
+</metadata>
