@@ -1,0 +1,116 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "v.akfz",
+    "module": "aslib-fabric",
+    "version": "Dev_1.20.1-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.14.4"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "aslib-fabric-Dev_1.20.1-SNAPSHOT.jar",
+          "url": "aslib-fabric-Dev_1.20.1-SNAPSHOT.jar",
+          "size": 282237,
+          "sha512": "71fb7f192684e8f79e5780ed45efbe39b254b600b107deda04e9235ba1197f81ffe839af0aa0aa35cdbee9d6d18fe1a3bb61e923fb447ea4722fa1756cd24aeb",
+          "sha256": "9cbcc32f641e6212f14a72ceb65949675146b906e75a2c6cd2e854a3ca23558e",
+          "sha1": "1207453e15e520dba736a99922c53ece0025b962",
+          "md5": "0ab38d93ea7957b7b1c2c33dc4c31eee"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "v.akfz",
+          "module": "aslib-fabric",
+          "version": {
+            "requires": "Dev_1.20.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "net.fabricmc",
+          "module": "fabric-loader",
+          "version": {
+            "requires": "0.15.11"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "aslib-fabric-Dev_1.20.1-SNAPSHOT.jar",
+          "url": "aslib-fabric-Dev_1.20.1-SNAPSHOT.jar",
+          "size": 282237,
+          "sha512": "71fb7f192684e8f79e5780ed45efbe39b254b600b107deda04e9235ba1197f81ffe839af0aa0aa35cdbee9d6d18fe1a3bb61e923fb447ea4722fa1756cd24aeb",
+          "sha256": "9cbcc32f641e6212f14a72ceb65949675146b906e75a2c6cd2e854a3ca23558e",
+          "sha1": "1207453e15e520dba736a99922c53ece0025b962",
+          "md5": "0ab38d93ea7957b7b1c2c33dc4c31eee"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "aslib-fabric-Dev_1.20.1-SNAPSHOT-sources.jar",
+          "url": "aslib-fabric-Dev_1.20.1-SNAPSHOT-sources.jar",
+          "size": 146078,
+          "sha512": "f553ddadf9c3f15a8d146763beb1c49f91c4aa083e0da5228897ecc77e8f115e46d7e872e0b0e9d2b564f726203dcdc5db0162e7483086746927f18107038a14",
+          "sha256": "c557caf5056ecfee047c75b50a84d9a17dcb705dd719d37b601918080234c1a5",
+          "sha1": "5c537c7dac53dd0ed3f686b2278d6dd7922bc2bb",
+          "md5": "3aa04b6d19bc81a0d2ddb05ea42d70e2"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "aslib-fabric-Dev_1.20.1-SNAPSHOT-javadoc.jar",
+          "url": "aslib-fabric-Dev_1.20.1-SNAPSHOT-javadoc.jar",
+          "size": 708823,
+          "sha512": "523e053cfa20e856885d7d2de72a6c2ab144796fcdd59c1d526c0a64b0630eb9435eb9552f0a056742e75c80c89734a34945de917859bb9cca758aabd9ed5baf",
+          "sha256": "a079ffe392e429babc4566064548ee75263bfe2b56536db010dd76b55a788f21",
+          "sha1": "3b6a6c20c76db567ae94bc9540cfd82b8b554183",
+          "md5": "f993c68f54d7d07081941b39d9de91cd"
+        }
+      ]
+    }
+  ]
+}

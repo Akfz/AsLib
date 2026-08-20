@@ -1,0 +1,100 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "v.akfz",
+    "module": "aslib-fabric",
+    "version": "Dev_1.20.1-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.14.4"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "aslib-fabric-Dev_1.20.1-SNAPSHOT.jar",
+          "url": "aslib-fabric-Dev_1.20.1-SNAPSHOT.jar",
+          "size": 282373,
+          "sha512": "c08e0e318a215cfc3add82d2aa45c48085dabc6fa82d682407a909c9d52c30ca4cbd92972eb0f1dba10395f3f40db3c0993892495f7d3820087ab4270bc76990",
+          "sha256": "a09b74c35e8388027f07b1c6ce2ee9ffb93288fbc62c63ab91fb97a14a6cd6bd",
+          "sha1": "4c24fac4e65c5490dcb39141153d21b2ed49a85f",
+          "md5": "1e7ed9f27d09787bd2ae73db60b5b3c9"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "aslib-fabric-Dev_1.20.1-SNAPSHOT.jar",
+          "url": "aslib-fabric-Dev_1.20.1-SNAPSHOT.jar",
+          "size": 282373,
+          "sha512": "c08e0e318a215cfc3add82d2aa45c48085dabc6fa82d682407a909c9d52c30ca4cbd92972eb0f1dba10395f3f40db3c0993892495f7d3820087ab4270bc76990",
+          "sha256": "a09b74c35e8388027f07b1c6ce2ee9ffb93288fbc62c63ab91fb97a14a6cd6bd",
+          "sha1": "4c24fac4e65c5490dcb39141153d21b2ed49a85f",
+          "md5": "1e7ed9f27d09787bd2ae73db60b5b3c9"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "aslib-fabric-Dev_1.20.1-SNAPSHOT-sources.jar",
+          "url": "aslib-fabric-Dev_1.20.1-SNAPSHOT-sources.jar",
+          "size": 146059,
+          "sha512": "6acc670096ca11bf893d97ba2d651cef5ff9b02f994dba9b707d6ee9dc5445e4bc0db7ef50fb6b32bbb3324ad6c6657beca13d5da809fba7e0a65aa6a9e153bd",
+          "sha256": "e946f15a3a161922b750ed91e8842f41203662aff9493f0e91e816b84a368e38",
+          "sha1": "584add3a2d903954e3b83393d144e2e45bf45975",
+          "md5": "115790ac7b5dda4e3e35b325bcd39717"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "aslib-fabric-Dev_1.20.1-SNAPSHOT-javadoc.jar",
+          "url": "aslib-fabric-Dev_1.20.1-SNAPSHOT-javadoc.jar",
+          "size": 709115,
+          "sha512": "13042e4920dc572eddcc3f32a4632eb6e0ce36e53c7d948821846921775d041c11780fb44718898b6972b6e5274761959e8d5df8aa3ea2f86c2ad6808ab3396c",
+          "sha256": "c055f89e462bb0f987b1604b3835759a2ebbb653618377885ae2ad5100f8333c",
+          "sha1": "4b912ffa77602e705fe3f9aeda5049a387fb4429",
+          "md5": "3711646770fa99dbc42c437c757ac4a8"
+        }
+      ]
+    }
+  ]
+}
