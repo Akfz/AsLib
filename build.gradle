@@ -89,37 +89,28 @@ subprojects {
         }
     }
 
-    afterEvaluate {
-        def alwaysExclude = []
-        def releaseOnlyExclude = []
-
-        sourceSets.main.java.srcDirs.each { File srcDir ->
-            if (srcDir.exists()) {
-                srcDir.eachFileRecurse { File file ->
-                    if (file.name.endsWith('.java')) {
-                        String text = file.text
-                        if (text.contains('@DontCompile')) {
-                            String relPath = srcDir.toPath().relativize(file.toPath()).toString().replace('\\', '/')
-                            boolean isFalse = (text =~ /@DontCompile\s*\(\s*(value\s*=\s*)?false\s*\)/).find()
-
-                            if (isFalse) {
-                                alwaysExclude << relPath
-                            } else {
-                                releaseOnlyExclude << relPath
-                            }
+    tasks.withType(Jar).configureEach {
+        def dontCompileClasses = provider {
+            def set = [] as Set
+            sourceSets.main.java.srcDirs.each { File srcDir ->
+                if (srcDir.exists()) {
+                    srcDir.eachFileRecurse { File file ->
+                        if (file.name.endsWith('.java') && file.text.contains('@DontCompile')) {
+                            String rel = srcDir.toPath().relativize(file.toPath()).toString().replace('\\', '/')
+                            set.add(rel.substring(0, rel.length() - 5))
                         }
                     }
                 }
             }
+            return set
         }
 
-        tasks.named('compileJava', JavaCompile) {
-            if (!alwaysExclude.isEmpty()) exclude(alwaysExclude)
-            if (!releaseOnlyExclude.isEmpty()) exclude(releaseOnlyExclude)
-        }
-
-        tasks.matching { it.name == 'compileTestJava' }.configureEach {
-            if (!alwaysExclude.isEmpty()) exclude(alwaysExclude)
+        exclude { element ->
+            if (element.name.endsWith('.class')) {
+                String path = element.path.replace('\\', '/')
+                return dontCompileClasses.get().any { prefix -> path.startsWith(prefix + '.') || path.startsWith(prefix + '$') }
+            }
+            return false
         }
     }
 
