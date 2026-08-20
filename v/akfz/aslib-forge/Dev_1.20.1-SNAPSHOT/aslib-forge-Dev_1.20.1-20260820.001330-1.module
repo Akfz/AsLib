@@ -1,0 +1,116 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "v.akfz",
+    "module": "aslib-forge",
+    "version": "Dev_1.20.1-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.14.4"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "aslib-forge-Dev_1.20.1-SNAPSHOT.jar",
+          "url": "aslib-forge-Dev_1.20.1-SNAPSHOT.jar",
+          "size": 277784,
+          "sha512": "f1a2d16bdfbb4f8fbd20326e10e405a9757e729fe2d3bace6c7ca8fa2ef145b61451fd1d8e278744f88a8169a581561f85258be09c3c5efd18bb2803fde668e5",
+          "sha256": "de900913d0ef42b8c10fde85bbbf16ad9f1886d14d1127412151319d2e0cabae",
+          "sha1": "89011bc233c0c6f488aeff7166df399b576fda82",
+          "md5": "477e1ae35778830e708f0921461d873d"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "v.akfz",
+          "module": "aslib-common",
+          "version": {
+            "requires": "Dev_1.20.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "net.minecraftforge",
+          "module": "forge",
+          "version": {
+            "requires": "1.20.1-47.4.20_mapped_parchment_2023.09.03-1.20.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "aslib-forge-Dev_1.20.1-SNAPSHOT.jar",
+          "url": "aslib-forge-Dev_1.20.1-SNAPSHOT.jar",
+          "size": 277784,
+          "sha512": "f1a2d16bdfbb4f8fbd20326e10e405a9757e729fe2d3bace6c7ca8fa2ef145b61451fd1d8e278744f88a8169a581561f85258be09c3c5efd18bb2803fde668e5",
+          "sha256": "de900913d0ef42b8c10fde85bbbf16ad9f1886d14d1127412151319d2e0cabae",
+          "sha1": "89011bc233c0c6f488aeff7166df399b576fda82",
+          "md5": "477e1ae35778830e708f0921461d873d"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "aslib-forge-Dev_1.20.1-SNAPSHOT-sources.jar",
+          "url": "aslib-forge-Dev_1.20.1-SNAPSHOT-sources.jar",
+          "size": 139195,
+          "sha512": "c6c18dd9ffb71fff615cc89eca5c9bbed997244336b6a20818cb9e7fe9c236c107f7495254233812e4fd6f740cdf1d7bcf3aaa92ed9be3edfdeaeb91f09b9622",
+          "sha256": "c6909104d6440bf69dd8ab4461c94879fa96acd1d79e8065451eadb33c4d29c5",
+          "sha1": "7521c4c1bd37cff84fc7bbdac6893cc4310653a6",
+          "md5": "b2464122d1fefe72b8a6c968942ceba8"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "aslib-forge-Dev_1.20.1-SNAPSHOT-javadoc.jar",
+          "url": "aslib-forge-Dev_1.20.1-SNAPSHOT-javadoc.jar",
+          "size": 708751,
+          "sha512": "ba331d10a5b6761d3965674481c41a27bc153cca4191ca871359f2677929804b4bd2aadf9f48ddffd4b1eba506a2fae094f4258ea674112e92c6481701b178ab",
+          "sha256": "5fea56c1e1faa1f9ceaa998e36ba31edbe92ab348e1446f161391a78d83bdc9b",
+          "sha1": "2d5fce72397d01efec8326125ba7fdd4006d9e77",
+          "md5": "bdd143c2988498998c9083ab99d54ead"
+        }
+      ]
+    }
+  ]
+}

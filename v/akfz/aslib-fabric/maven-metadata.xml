@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata>
   <groupId>v.akfz</groupId>
-  <artifactId>aslib-common</artifactId>
+  <artifactId>aslib-fabric</artifactId>
   <versioning>
     <latest>Dev_1.20.1-SNAPSHOT</latest>
     <versions>
       <version>Dev_1.20.1-SNAPSHOT</version>
     </versions>
-    <lastUpdated>20260820001400</lastUpdated>
+    <lastUpdated>20260820001413</lastUpdated>
   </versioning>
 </metadata>
