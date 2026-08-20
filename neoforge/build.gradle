@@ -1,5 +1,5 @@
 plugins {
-    id 'net.neoforged.moddev' version "${neoforge_gradle_version}"
+    id 'net.neoforged.moddev'
 }
 
 base {
@@ -14,7 +14,7 @@ repositories {
 neoForge {
     version = project.neoforge_version
 
-    def pVer = project.findProperty('parchment_version') ?: '2023.09.03'
+    def pVer = project.findProperty('parchment_version') ?: '2024.03.03'
     def pMc = project.findProperty('parchment_mc_version') ?: project.minecraft_version
     if (pVer) {
         parchment {
