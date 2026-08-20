@@ -35,8 +35,8 @@ jobs:
           echo "ASLIB_VERSION=${VERSION}" >> $GITHUB_ENV
           echo "Publishing version: ${VERSION}"
 
-      - name: Build and Publish Common to local folder
-        run: ./gradlew :common:publish -Ppublishing-dir=build/repo -Pmod_version=${{ env.ASLIB_VERSION }}
+      - name: Build and Publish All Modules to local folder
+        run: ./gradlew publish -Ppublishing-dir=build/repo -Pmod_version=${{ env.ASLIB_VERSION }}
 
       - name: Deploy Maven to branch
         uses: jamesives/github-pages-deploy-action@v4
