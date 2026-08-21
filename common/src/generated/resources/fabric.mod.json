@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "aslib",
-  "version": "1.0-SNAPSHOT",
+  "version": "1.0",
   "name": "AromaticSugarLibrary",
   "description": "Come up with a joke yourself \n Thanks SweetB1ans for help on start creation this mod",
   "license": "MIT",
