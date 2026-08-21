@@ -19,7 +19,7 @@ public class SideEnvironment {
         try {
             Class.forName("net.minecraft.client.Minecraft", false, SideEnvironment.class.getClassLoader());
             return true;
-        } catch (ClassNotFoundException e) {
+        } catch (Exception e) {
             return false;
         }
     }
