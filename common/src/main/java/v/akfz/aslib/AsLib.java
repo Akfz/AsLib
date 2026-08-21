@@ -22,7 +22,12 @@ public final class AsLib {
     public static final EventBus EVENT_BUS = new EventBus();
 
     public static void init() {
-        for (IRegistryLoader loader : ServiceLoader.load(IRegistryLoader.class)) {
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        if (cl == null) {
+            cl = AsLib.class.getClassLoader();
+        }
+
+        for (IRegistryLoader loader : ServiceLoader.load(IRegistryLoader.class, cl)) {
             try {
                 loader.run();
             } catch (Throwable t) {

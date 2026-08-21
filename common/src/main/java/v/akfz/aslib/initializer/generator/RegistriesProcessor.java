@@ -208,18 +208,17 @@ public class RegistriesProcessor extends AbstractProcessor {
                     }
                 }
 
-                writer.write("        if (v.akfz.aslib.initializer.LoaderEnvironment.getFastLoader() == v.akfz.aslib.initializer.LoaderEnvironment.Loader.FABRIC) {\n");
                 for (String regKey : usedRegistries) {
                     if (regKey.startsWith("builtin:")) {
                         String builtInKey = regKey.substring("builtin:".length());
-                        writer.write("            unfreeze(BuiltInRegistries." + builtInKey + ");\n");
+                        writer.write("        unfreeze(BuiltInRegistries." + builtInKey + ");\n");
                     } else {
                         String customRegistry = regKey.substring("custom:".length());
                         String customRl = "new ResourceLocation(\"" + getNamespace(customRegistry) + "\", \"" + getPath(customRegistry) + "\")";
-                        writer.write("            unfreeze((Registry<?>) BuiltInRegistries.REGISTRY.get(" + customRl + "));\n");
+                        writer.write("        unfreeze((Registry<?>) BuiltInRegistries.REGISTRY.get(" + customRl + "));\n");
                     }
                 }
-                writer.write("        }\n\n");
+                writer.write("\n");
 
                 for (RegistryFieldData field : fields) {
                     if (field.type == RegistryType.COMMAND) {
@@ -230,7 +229,6 @@ public class RegistriesProcessor extends AbstractProcessor {
                     }
                 }
 
-                writer.write("        if (v.akfz.aslib.initializer.LoaderEnvironment.getFastLoader() == v.akfz.aslib.initializer.LoaderEnvironment.Loader.FABRIC) {\n");
                 for (RegistryFieldData field : fields) {
                     if (field.type != RegistryType.COMMAND && field.type != RegistryType.INSERT) {
                         String rlExpr = "new ResourceLocation(\"" + getNamespace(field.id) + "\", \"" + getPath(field.id) + "\")";
@@ -238,15 +236,15 @@ public class RegistriesProcessor extends AbstractProcessor {
 
                         if (field.type == RegistryType.CUSTOM) {
                             String customRl = "new ResourceLocation(\"" + getNamespace(field.customRegistry) + "\", \"" + getPath(field.customRegistry) + "\")";
-                            writer.write("            {\n");
-                            writer.write("                Registry<Object> customReg = (Registry<Object>) BuiltInRegistries.REGISTRY.get(" + customRl + ");\n");
-                            writer.write("                if (customReg != null) {\n");
-                            writer.write("                    Registry.register(customReg, " + rlExpr + ", " + fieldRef + ");\n");
-                            writer.write("                }\n");
+                            writer.write("        {\n");
+                            writer.write("            Registry<Object> customReg = (Registry<Object>) BuiltInRegistries.REGISTRY.get(" + customRl + ");\n");
+                            writer.write("            if (customReg != null) {\n");
+                            writer.write("                Registry.register(customReg, " + rlExpr + ", " + fieldRef + ");\n");
                             writer.write("            }\n");
+                            writer.write("        }\n");
                         } else {
                             String builtInKey = getBuiltInRegistryFieldName(field.type);
-                            writer.write("            Registry.register(BuiltInRegistries." + builtInKey + ", " + rlExpr + ", " + fieldRef + ");\n");
+                            writer.write("        Registry.register(BuiltInRegistries." + builtInKey + ", " + rlExpr + ", " + fieldRef + ");\n");
                         }
                     }
                 }
@@ -254,46 +252,33 @@ public class RegistriesProcessor extends AbstractProcessor {
                 for (String regKey : usedRegistries) {
                     if (regKey.startsWith("builtin:")) {
                         String builtInKey = regKey.substring("builtin:".length());
-                        writer.write("            freeze(BuiltInRegistries." + builtInKey + ");\n");
+                        writer.write("        freeze(BuiltInRegistries." + builtInKey + ");\n");
                     } else {
                         String customRegistry = regKey.substring("custom:".length());
                         String customRl = "new ResourceLocation(\"" + getNamespace(customRegistry) + "\", \"" + getPath(customRegistry) + "\")";
-                        writer.write("            freeze((Registry<?>) BuiltInRegistries.REGISTRY.get(" + customRl + "));\n");
+                        writer.write("        freeze((Registry<?>) BuiltInRegistries.REGISTRY.get(" + customRl + "));\n");
                     }
                 }
-                writer.write("        }\n");
 
                 writer.write("    }\n\n");
 
                 writer.write("    private static void unfreeze(net.minecraft.core.Registry<?> registry) {\n");
-                writer.write("        if (v.akfz.aslib.initializer.LoaderEnvironment.getFastLoader() != v.akfz.aslib.initializer.LoaderEnvironment.Loader.FABRIC) return;\n");
                 writer.write("        if (registry == null) return;\n");
                 writer.write("        if (!(registry instanceof net.minecraft.core.MappedRegistry<?>)) return;\n");
                 writer.write("        net.minecraft.core.MappedRegistry<?> mapped = (net.minecraft.core.MappedRegistry<?>) registry;\n");
                 writer.write("        try {\n");
-                writer.write("            java.lang.reflect.Field frozenField = null;\n");
                 writer.write("            for (java.lang.reflect.Field f : net.minecraft.core.MappedRegistry.class.getDeclaredFields()) {\n");
                 writer.write("                if (f.getType() == boolean.class) {\n");
-                writer.write("                    frozenField = f;\n");
-                writer.write("                    break;\n");
+                writer.write("                    f.setAccessible(true);\n");
+                writer.write("                    f.set(mapped, false);\n");
                 writer.write("                }\n");
                 writer.write("            }\n");
-                writer.write("            if (frozenField != null) {\n");
-                writer.write("                frozenField.setAccessible(true);\n");
-                writer.write("                frozenField.set(mapped, false);\n");
-                writer.write("            }\n\n");
-
-                writer.write("            java.lang.reflect.Field intrusiveField = null;\n");
-                writer.write("            for (String name : new String[]{\"unintrusiveHolders\", \"unregisteredIntrusiveHolders\", \"m\", \"f_243896_\"}) {\n");
-                writer.write("                try {\n");
-                writer.write("                    intrusiveField = net.minecraft.core.MappedRegistry.class.getDeclaredField(name);\n");
-                writer.write("                    break;\n");
-                writer.write("                } catch (Exception ignored) {}\n");
-                writer.write("            }\n");
-                writer.write("            if (intrusiveField != null) {\n");
-                writer.write("                intrusiveField.setAccessible(true);\n");
-                writer.write("                if (intrusiveField.get(mapped) == null) {\n");
-                writer.write("                    intrusiveField.set(mapped, new java.util.IdentityHashMap<>());\n");
+                writer.write("            for (java.lang.reflect.Field f : net.minecraft.core.MappedRegistry.class.getDeclaredFields()) {\n");
+                writer.write("                if (java.util.Map.class.isAssignableFrom(f.getType())) {\n");
+                writer.write("                    f.setAccessible(true);\n");
+                writer.write("                    if (f.get(mapped) == null) {\n");
+                writer.write("                        f.set(mapped, new java.util.IdentityHashMap<>());\n");
+                writer.write("                    }\n");
                 writer.write("                }\n");
                 writer.write("            }\n");
                 writer.write("        } catch (Exception e) {\n");
@@ -302,7 +287,6 @@ public class RegistriesProcessor extends AbstractProcessor {
                 writer.write("    }\n\n");
 
                 writer.write("    private static void freeze(net.minecraft.core.Registry<?> registry) {\n");
-                writer.write("        if (v.akfz.aslib.initializer.LoaderEnvironment.getFastLoader() != v.akfz.aslib.initializer.LoaderEnvironment.Loader.FABRIC) return;\n");
                 writer.write("        if (registry instanceof net.minecraft.core.MappedRegistry<?>) {\n");
                 writer.write("            ((net.minecraft.core.MappedRegistry<?>) registry).freeze();\n");
                 writer.write("        }\n");
