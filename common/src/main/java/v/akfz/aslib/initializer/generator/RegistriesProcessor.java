@@ -205,7 +205,6 @@ public class RegistriesProcessor extends AbstractProcessor {
                 writer.write("import net.minecraft.resources.ResourceLocation;\n\n");
 
                 writer.write("public class " + generatedClassName + " {\n\n");
-                writer.write("    @Override\n");
                 writer.write("    public void run() {\n");
                 writer.write("        registerAll();\n");
                 writer.write("    }\n\n");
