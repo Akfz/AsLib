@@ -204,7 +204,7 @@ public class RegistriesProcessor extends AbstractProcessor {
                 writer.write("import net.minecraft.core.registries.BuiltInRegistries;\n");
                 writer.write("import net.minecraft.resources.ResourceLocation;\n\n");
 
-                writer.write("public class " + generatedClassName + " implements v.akfz.aslib.initializer.generator.IRegistryLoader {\n\n");
+                writer.write("public class " + generatedClassName + " {\n\n");
                 writer.write("    @Override\n");
                 writer.write("    public void run() {\n");
                 writer.write("        registerAll();\n");
