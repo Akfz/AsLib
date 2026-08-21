@@ -47,8 +47,7 @@ public class RegistriesProcessor extends AbstractProcessor {
                     if (genAnno == null) {
                         messager.printMessage(Diagnostic.Kind.ERROR,
                                 "Field '" + element.getSimpleName() + "' in class '" + enclosingClass.getQualifiedName() +
-                                        "' is annotated with @RegisterModule, but the class is missing the @GenerateRegistries annotation. " +
-                                        "All classes containing @RegisterModule fields must be annotated with @GenerateRegistries.", element);
+                                        "' is annotated with @RegisterModule, but the class is missing the @GenerateRegistries annotation.", element);
                         continue;
                     }
 
@@ -152,27 +151,13 @@ public class RegistriesProcessor extends AbstractProcessor {
 
         while (current instanceof TypeElement typeElement) {
             String canonicalName = typeElement.getQualifiedName().toString();
-            if (canonicalName.equals("net.minecraft.world.level.block.Block")) {
-                return RegistryType.BLOCK;
-            }
-            if (canonicalName.equals("net.minecraft.world.item.Item")) {
-                return RegistryType.ITEM;
-            }
-            if (canonicalName.equals("net.minecraft.sounds.SoundEvent")) {
-                return RegistryType.SOUND_EVENT;
-            }
-            if (canonicalName.equals("net.minecraft.world.level.block.entity.BlockEntityType")) {
-                return RegistryType.BLOCK_ENTITY_TYPE;
-            }
-            if (canonicalName.equals("net.minecraft.world.entity.EntityType")) {
-                return RegistryType.ENTITY_TYPE;
-            }
-            if (canonicalName.equals("net.minecraft.world.level.material.Fluid")) {
-                return RegistryType.FLUID;
-            }
-            if (canonicalName.equals("net.minecraft.world.item.CreativeModeTab")) {
-                return RegistryType.CREATIVE_MODE_TAB;
-            }
+            if (canonicalName.equals("net.minecraft.world.level.block.Block")) return RegistryType.BLOCK;
+            if (canonicalName.equals("net.minecraft.world.item.Item")) return RegistryType.ITEM;
+            if (canonicalName.equals("net.minecraft.sounds.SoundEvent")) return RegistryType.SOUND_EVENT;
+            if (canonicalName.equals("net.minecraft.world.level.block.entity.BlockEntityType")) return RegistryType.BLOCK_ENTITY_TYPE;
+            if (canonicalName.equals("net.minecraft.world.entity.EntityType")) return RegistryType.ENTITY_TYPE;
+            if (canonicalName.equals("net.minecraft.world.level.material.Fluid")) return RegistryType.FLUID;
+            if (canonicalName.equals("net.minecraft.world.item.CreativeModeTab")) return RegistryType.CREATIVE_MODE_TAB;
 
             for (TypeMirror iface : typeElement.getInterfaces()) {
                 if (iface == null) continue;
@@ -204,7 +189,8 @@ public class RegistriesProcessor extends AbstractProcessor {
                 writer.write("import net.minecraft.core.registries.BuiltInRegistries;\n");
                 writer.write("import net.minecraft.resources.ResourceLocation;\n\n");
 
-                writer.write("public class " + generatedClassName + " {\n\n");
+                writer.write("public class " + generatedClassName + " implements v.akfz.aslib.initializer.generator.IRegistryLoader {\n\n");
+                writer.write("    @Override\n");
                 writer.write("    public void run() {\n");
                 writer.write("        registerAll();\n");
                 writer.write("    }\n\n");
@@ -298,22 +284,11 @@ public class RegistriesProcessor extends AbstractProcessor {
                 writer.write("            }\n\n");
 
                 writer.write("            java.lang.reflect.Field intrusiveField = null;\n");
-                writer.write("            for (java.lang.reflect.Field f : net.minecraft.core.MappedRegistry.class.getDeclaredFields()) {\n");
-                writer.write("                if (java.util.Map.class.isAssignableFrom(f.getType())) {\n");
-                writer.write("                    f.setAccessible(true);\n");
-                writer.write("                    if (f.get(mapped) == null) {\n");
-                writer.write("                        intrusiveField = f;\n");
-                writer.write("                        break;\n");
-                writer.write("                    }\n");
-                writer.write("                }\n");
-                writer.write("            }\n");
-                writer.write("            if (intrusiveField == null) {\n");
-                writer.write("                for (String name : new String[]{\"unregisteredIntrusiveHolders\", \"m\"}) {\n");
-                writer.write("                    try {\n");
-                writer.write("                        intrusiveField = net.minecraft.core.MappedRegistry.class.getDeclaredField(name);\n");
-                writer.write("                        break;\n");
-                writer.write("                    } catch (Exception ignored) {}\n");
-                writer.write("                }\n");
+                writer.write("            for (String name : new String[]{\"unintrusiveHolders\", \"unregisteredIntrusiveHolders\", \"m\", \"f_243896_\"}) {\n");
+                writer.write("                try {\n");
+                writer.write("                    intrusiveField = net.minecraft.core.MappedRegistry.class.getDeclaredField(name);\n");
+                writer.write("                    break;\n");
+                writer.write("                } catch (Exception ignored) {}\n");
                 writer.write("            }\n");
                 writer.write("            if (intrusiveField != null) {\n");
                 writer.write("                intrusiveField.setAccessible(true);\n");

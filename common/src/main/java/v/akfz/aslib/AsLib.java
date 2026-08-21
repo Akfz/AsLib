@@ -1,11 +1,13 @@
 package v.akfz.aslib;
 
 import java.util.List;
+import java.util.ServiceLoader;
 
 import v.akfz.aslib.command.CommandHandler;
 import v.akfz.aslib.command.impl.DimensionCommand;
 import v.akfz.aslib.event.api.EventBus;
 import v.akfz.aslib.event.listener.TickUpdaterListener;
+import v.akfz.aslib.initializer.generator.IRegistryLoader;
 import v.akfz.aslib.network.AsLibNetworking;
 import v.akfz.aslib.network.bundle.BundleHeaderHandler;
 import v.akfz.aslib.network.bundle.BundleHeaderPacket;
@@ -19,7 +21,16 @@ public final class AsLib {
 
     public static final EventBus EVENT_BUS = new EventBus();
 
-    public void init() {
+    public static void init() {
+        for (IRegistryLoader loader : ServiceLoader.load(IRegistryLoader.class)) {
+            try {
+                loader.run();
+            } catch (Throwable t) {
+                System.err.println("[AsLib] Failed to execute registry loader: " + loader.getClass().getName());
+                t.printStackTrace();
+            }
+        }
+
         EVENT_BUS.register(new TickUpdaterListener());
 
         AsLibNetworking.REGISTRY.register(new BundleHeaderPacket(0, List.of()), new BundleHeaderHandler());
