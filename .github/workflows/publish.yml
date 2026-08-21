@@ -43,3 +43,4 @@ jobs:
         with:
           folder: build/repo
           branch: maven
+          clean: false

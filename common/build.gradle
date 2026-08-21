@@ -44,11 +44,20 @@ dependencies {
     annotationProcessor "io.github.llamalad7:mixinextras-common:${mixinExtrasVer}"
 }
 
+def getModProperties() {
+    if (project.hasProperty('modProperties')) return project.property('modProperties')
+    if (project.parent?.ext?.has('modProperties')) return project.parent.ext.modProperties
+    if (rootProject.ext.has('modProperties')) return rootProject.ext.modProperties
+    return [:]
+}
+
 tasks.named('processResources', ProcessResources).configure {
-    inputs.properties rootProject.ext.modProperties
+    def props = getModProperties()
+
+    inputs.properties props
 
     filesMatching('fabric.mod.json') {
-        expand rootProject.ext.modProperties
+        expand props
     }
 }
 
