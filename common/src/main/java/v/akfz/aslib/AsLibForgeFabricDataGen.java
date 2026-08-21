@@ -8,7 +8,7 @@ import v.akfz.aslib.datagen.forge.packmcmeta.GeneratePackMcmeta;
 import v.akfz.aslib.datagen.forge.packmcmeta.PackMcmetaData;
 import v.akfz.db.annotation.DontCompile;
 
-@DontCompile(false)
+@DontCompile()
 public class AsLibForgeFabricDataGen {
 
     public static void main(String[] args) {
