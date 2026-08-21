@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>v.akfz</groupId>
+  <artifactId>aslib-fabric</artifactId>
+  <versioning>
+    <lastUpdated>20260821015337</lastUpdated>
+    <snapshot>
+      <timestamp>20260821.015337</timestamp>
+      <buildNumber>1</buildNumber>
+    </snapshot>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>Dev_1.20.1-20260821.015337-1</value>
+        <updated>20260821015337</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <classifier>sources</classifier>
+        <extension>jar</extension>
+        <value>Dev_1.20.1-20260821.015337-1</value>
+        <updated>20260821015337</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>Dev_1.20.1-20260821.015337-1</value>
+        <updated>20260821015337</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <classifier>javadoc</classifier>
+        <extension>jar</extension>
+        <value>Dev_1.20.1-20260821.015337-1</value>
+        <updated>20260821015337</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+  <version>Dev_1.20.1-SNAPSHOT</version>
+</metadata>

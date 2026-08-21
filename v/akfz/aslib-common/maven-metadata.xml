@@ -3,10 +3,10 @@
   <groupId>v.akfz</groupId>
   <artifactId>aslib-common</artifactId>
   <versioning>
-    <latest>Release_1.20.1-SNAPSHOT</latest>
+    <latest>Dev_1.20.1-SNAPSHOT</latest>
     <versions>
-      <version>Release_1.20.1-SNAPSHOT</version>
+      <version>Dev_1.20.1-SNAPSHOT</version>
     </versions>
-    <lastUpdated>20260820022833</lastUpdated>
+    <lastUpdated>20260821015413</lastUpdated>
   </versioning>
 </metadata>
