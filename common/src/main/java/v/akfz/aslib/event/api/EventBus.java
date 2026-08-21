@@ -103,23 +103,33 @@ public final class EventBus {
             Method method,
             Class<E> eventClass
     ) throws Throwable {
+        try {
+            MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(listener.getClass(), MethodHandles.lookup());
 
-        MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(listener.getClass(), MethodHandles.lookup());
+            MethodHandle handle = lookup.unreflect(method);
 
-        MethodHandle handle = lookup.unreflect(method);
+            CallSite site = LambdaMetafactory.metafactory(
+                    lookup,
+                    "invoke",
+                    MethodType.methodType(
+                            EventInvoker.class,
+                            listener.getClass()
+                    ),
+                    MethodType.methodType(void.class, Event.class),
+                    handle,
+                    MethodType.methodType(void.class, eventClass)
+            );
 
-        CallSite site = LambdaMetafactory.metafactory(
-                lookup,
-                "invoke",
-                MethodType.methodType(
-                        EventInvoker.class,
-                        listener.getClass()
-                ),
-                MethodType.methodType(void.class, Event.class),
-                handle,
-                MethodType.methodType(void.class, eventClass)
-        );
-
-        return (EventInvoker<E>) site.getTarget().invoke(listener);
+            return (EventInvoker<E>) site.getTarget().invoke(listener);
+        } catch (Throwable t) {
+            MethodHandle handle = MethodHandles.lookup().unreflect(method).bindTo(listener);
+            return event -> {
+                try {
+                    handle.invoke(event);
+                } catch (Throwable ex) {
+                    throw new RuntimeException("Error executing event listener " + method, ex);
+                }
+            };
+        }
     }
 }
