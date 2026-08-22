@@ -3,33 +3,33 @@
   <groupId>v.akfz</groupId>
   <artifactId>aslib-fabric</artifactId>
   <versioning>
-    <lastUpdated>20260821180539</lastUpdated>
+    <lastUpdated>20260822140955</lastUpdated>
     <snapshot>
-      <timestamp>20260821.180539</timestamp>
+      <timestamp>20260822.140955</timestamp>
       <buildNumber>1</buildNumber>
     </snapshot>
     <snapshotVersions>
       <snapshotVersion>
-        <extension>jar</extension>
-        <value>Dev_1.20.1-20260821.180539-1</value>
-        <updated>20260821180539</updated>
-      </snapshotVersion>
-      <snapshotVersion>
         <classifier>javadoc</classifier>
         <extension>jar</extension>
-        <value>Dev_1.20.1-20260821.180539-1</value>
-        <updated>20260821180539</updated>
+        <value>Dev_1.20.1-20260822.140955-1</value>
+        <updated>20260822140955</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>Dev_1.20.1-20260822.140955-1</value>
+        <updated>20260822140955</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>Dev_1.20.1-20260822.140955-1</value>
+        <updated>20260822140955</updated>
       </snapshotVersion>
       <snapshotVersion>
         <classifier>sources</classifier>
         <extension>jar</extension>
-        <value>Dev_1.20.1-20260821.180539-1</value>
-        <updated>20260821180539</updated>
-      </snapshotVersion>
-      <snapshotVersion>
-        <extension>pom</extension>
-        <value>Dev_1.20.1-20260821.180539-1</value>
-        <updated>20260821180539</updated>
+        <value>Dev_1.20.1-20260822.140955-1</value>
+        <updated>20260822140955</updated>
       </snapshotVersion>
     </snapshotVersions>
   </versioning>
