@@ -113,29 +113,31 @@ public class RegistriesProcessor extends AbstractProcessor {
                     }
                 }
 
+                String fullRegistryClassName = typeElement.getQualifiedName().toString();
+
                 if (currentTarget.equalsIgnoreCase("fabric")) {
-                    String fullLoaderName = generateLoader(filer, packageId, className, modFields, true);
+                    String fullLoaderName = generateLoader(filer, packageId, className, fullRegistryClassName, modFields, true);
                     if (fullLoaderName != null) {
                         generatedRegistrars.add(fullLoaderName);
                     }
                 } else {
                     if (hasLoaderNeeds) {
-                        String fullLoaderName = generateLoader(filer, packageId, className, modFields, false);
+                        String fullLoaderName = generateLoader(filer, packageId, className, fullRegistryClassName, modFields, false);
                         if (fullLoaderName != null) {
                             generatedRegistrars.add(fullLoaderName);
                         }
                     }
 
                     if (currentTarget.equalsIgnoreCase("forge")) {
-                        generateForgeRegistrar(filer, packageId, className, modId, typeElement.getQualifiedName().toString(), modFields);
+                        generateForgeRegistrar(filer, packageId, className, modId, fullRegistryClassName, modFields);
                     } else if (currentTarget.equalsIgnoreCase("neoforge")) {
-                        generateNeoForgeRegistrar(filer, packageId, className, modId, typeElement.getQualifiedName().toString(), modFields);
+                        generateNeoForgeRegistrar(filer, packageId, className, modId, fullRegistryClassName, modFields);
                     }
                 }
             }
         }
 
-        if (roundEnv.processingOver() && !generatedRegistrars.isEmpty()) {
+        if (!generatedRegistrars.isEmpty()) {
             generateSpiFile(filer);
         }
 
@@ -177,7 +179,7 @@ public class RegistriesProcessor extends AbstractProcessor {
         return RegistryType.AUTO;
     }
 
-    private String generateLoader(Filer filer, String packageId, String className, List<RegistryFieldData> fields, boolean fabricOnly) {
+    private String generateLoader(Filer filer, String packageId, String className, String fullRegistryClassName, List<RegistryFieldData> fields, boolean fabricOnly) {
         String generatedClassName = className + "_Loader";
         String fullPath = packageId + "." + generatedClassName;
 
@@ -196,6 +198,10 @@ public class RegistriesProcessor extends AbstractProcessor {
                 writer.write("    }\n\n");
 
                 writer.write("    public static void registerAll() {\n");
+
+                writer.write("        try {\n");
+                writer.write("            Class.forName(\"" + fullRegistryClassName + "\");\n");
+                writer.write("        } catch (Throwable ignored) {}\n\n");
 
                 java.util.Set<String> usedRegistries = new java.util.LinkedHashSet<>();
                 for (RegistryFieldData field : fields) {
@@ -294,6 +300,7 @@ public class RegistriesProcessor extends AbstractProcessor {
 
                 writer.write("}\n");
             }
+        } catch (FilerException ignored) {
         } catch (Exception e) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Failed to generate Loader: " + e.getMessage());
             return null;
@@ -386,6 +393,7 @@ public class RegistriesProcessor extends AbstractProcessor {
 
                 writer.write("}\n");
             }
+        } catch (FilerException ignored) {
         } catch (Exception e) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Failed to generate Forge Registrar: " + e.getMessage());
         }
@@ -476,6 +484,7 @@ public class RegistriesProcessor extends AbstractProcessor {
 
                 writer.write("}\n");
             }
+        } catch (FilerException ignored) {
         } catch (Exception e) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Failed to generate NeoForge Registrar: " + e.getMessage());
         }
@@ -493,6 +502,7 @@ public class RegistriesProcessor extends AbstractProcessor {
                     writer.write(registrar + "\n");
                 }
             }
+        } catch (FilerException ignored) {
         } catch (Exception e) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Failed to generate SPI file: " + e.getMessage());
         }
