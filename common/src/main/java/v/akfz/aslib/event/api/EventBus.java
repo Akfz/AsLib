@@ -1,8 +1,6 @@
 package v.akfz.aslib.event.api;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
+import java.lang.invoke.*;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -97,15 +95,18 @@ public final class EventBus {
             Class<E> eventClass
     ) throws Throwable {
         MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(listener.getClass(), MethodHandles.lookup());
-        MethodHandle boundHandle = lookup.unreflect(method).bindTo(listener);
-        MethodHandle adaptedHandle = boundHandle.asType(MethodType.methodType(void.class, Event.class));
+        MethodHandle targetHandle = lookup.unreflect(method);
+        MethodHandle boundHandle = targetHandle.bindTo(listener);
 
-        return event -> {
-            try {
-                adaptedHandle.invokeExact(event);
-            } catch (Throwable ex) {
-                throw new RuntimeException("Error executing event listener: " + method, ex);
-            }
-        };
+        CallSite site = LambdaMetafactory.metafactory(
+                lookup,
+                "invoke",
+                MethodType.methodType(EventInvoker.class),
+                MethodType.methodType(void.class, Event.class),
+                boundHandle,
+                MethodType.methodType(void.class, eventClass)
+        );
+
+        return (EventInvoker<E>) site.getTarget().invokeExact();
     }
 }
