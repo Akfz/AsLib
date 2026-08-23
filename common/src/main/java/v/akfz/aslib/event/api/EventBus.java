@@ -95,18 +95,17 @@ public final class EventBus {
             Class<E> eventClass
     ) throws Throwable {
         MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(listener.getClass(), MethodHandles.lookup());
-        MethodHandle targetHandle = lookup.unreflect(method);
-        MethodHandle boundHandle = targetHandle.bindTo(listener);
+        MethodHandle target = lookup.unreflect(method);
 
         CallSite site = LambdaMetafactory.metafactory(
                 lookup,
                 "invoke",
-                MethodType.methodType(EventInvoker.class),
+                MethodType.methodType(EventInvoker.class, listener.getClass()),
                 MethodType.methodType(void.class, Event.class),
-                boundHandle,
-                MethodType.methodType(void.class, eventClass)
+                target,
+                target.type().dropParameterTypes(0, 1)
         );
 
-        return (EventInvoker<E>) site.getTarget().invokeExact();
+        return (EventInvoker<E>) site.getTarget().invokeExact(listener);
     }
 }
