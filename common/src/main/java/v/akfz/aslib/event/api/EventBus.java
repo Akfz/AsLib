@@ -1,6 +1,8 @@
 package v.akfz.aslib.event.api;
 
-import java.lang.invoke.*;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,79 +12,70 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class EventBus {
 
-    private final Map<Class<?>, EventHandler<?>[]> handlers =
-            new ConcurrentHashMap<>();
-
-    private volatile ClassValue<EventHandler<?>[]> hierarchyCache =
-            createHierarchyCache();
+    private final Map<Class<?>, EventHandler<?>[]> handlers = new ConcurrentHashMap<>();
+    private final Map<Class<?>, EventHandler<?>[]> hierarchyCache = new ConcurrentHashMap<>();
 
     public void register(Listener listener) {
-        Class<?> listenerClass = listener.getClass();
+        Class<?> currentClass = listener.getClass();
 
-        for (Method method : listenerClass.getDeclaredMethods()) {
+        while (currentClass != null && currentClass != Object.class) {
+            for (Method method : currentClass.getDeclaredMethods()) {
 
-            if (!method.isAnnotationPresent(Subscribe.class)) continue;
-            if (method.getParameterCount() != 1) continue;
+                if (!method.isAnnotationPresent(Subscribe.class)) continue;
+                if (method.getParameterCount() != 1) continue;
 
-            Class<?> eventType = method.getParameterTypes()[0];
-            if (!Event.class.isAssignableFrom(eventType)) continue;
+                Class<?> eventType = method.getParameterTypes()[0];
+                if (!Event.class.isAssignableFrom(eventType)) continue;
 
-            method.setAccessible(true);
+                method.setAccessible(true);
+                Subscribe subscribe = method.getAnnotation(Subscribe.class);
 
-            Subscribe subscribe = method.getAnnotation(Subscribe.class);
+                try {
+                    EventInvoker<?> invoker = createInvoker(listener, method, (Class<? extends Event>) eventType);
 
-            try {
-                EventInvoker<?> invoker = createInvoker(listener, method, (Class<? extends Event>) eventType);
-
-                EventHandler<?> handler = new EventHandler<>(
-                        invoker,
-                        subscribe.priority(),
-                        subscribe.ignoreCancelled()
-                );
-
-                handlers.compute(eventType, (k, oldArr) -> {
-                    EventHandler<?>[] arr = oldArr == null ? new EventHandler<?>[0] : oldArr;
-                    EventHandler<?>[] newArr = Arrays.copyOf(arr, arr.length + 1);
-                    newArr[arr.length] = handler;
-
-                    Arrays.sort(newArr,
-                            Comparator.comparingInt((EventHandler<?> h) -> h.priority().ordinal())
-                                    .reversed()
+                    EventHandler<?> handler = new EventHandler<>(
+                            invoker,
+                            subscribe.priority(),
+                            subscribe.ignoreCancelled()
                     );
 
-                    return newArr;
-                });
+                    handlers.compute(eventType, (k, oldArr) -> {
+                        EventHandler<?>[] arr = oldArr == null ? new EventHandler<?>[0] : oldArr;
+                        EventHandler<?>[] newArr = Arrays.copyOf(arr, arr.length + 1);
+                        newArr[arr.length] = handler;
 
-            } catch (Throwable e) {
-                throw new RuntimeException("Failed to register listener method: " + method, e);
+                        Arrays.sort(newArr,
+                                Comparator.comparingInt((EventHandler<?> h) -> h.priority().ordinal()).reversed()
+                        );
+
+                        return newArr;
+                    });
+
+                } catch (Throwable e) {
+                    throw new RuntimeException("Failed to register listener method: " + method, e);
+                }
             }
+            currentClass = currentClass.getSuperclass();
         }
 
-        hierarchyCache = createHierarchyCache();
+        hierarchyCache.clear();
     }
 
     @SuppressWarnings("unchecked")
     public <E extends Event> void post(E event) {
-        EventHandler<?>[] list = hierarchyCache.get(event.getClass());
+        Class<?> eventClass = event.getClass();
+        EventHandler<?>[] list = hierarchyCache.computeIfAbsent(eventClass, this::resolveHandlers);
+
         for (EventHandler<?> handler : list) {
             ((EventHandler<E>) handler).handle(event);
         }
-    }
-
-    private ClassValue<EventHandler<?>[]> createHierarchyCache() {
-        return new ClassValue<>() {
-            @Override
-            protected EventHandler<?>[] computeValue(Class<?> type) {
-                return resolveHandlers(type);
-            }
-        };
     }
 
     private EventHandler<?>[] resolveHandlers(Class<?> eventClass) {
         List<EventHandler<?>> result = new ArrayList<>();
         Class<?> current = eventClass;
 
-        while (current != null) {
+        while (current != null && current != Object.class) {
             EventHandler<?>[] direct = handlers.get(current);
             if (direct != null) Collections.addAll(result, direct);
 
@@ -103,33 +96,16 @@ public final class EventBus {
             Method method,
             Class<E> eventClass
     ) throws Throwable {
-        try {
-            MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(listener.getClass(), MethodHandles.lookup());
+        MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(listener.getClass(), MethodHandles.lookup());
+        MethodHandle boundHandle = lookup.unreflect(method).bindTo(listener);
+        MethodHandle adaptedHandle = boundHandle.asType(MethodType.methodType(void.class, Event.class));
 
-            MethodHandle handle = lookup.unreflect(method);
-
-            CallSite site = LambdaMetafactory.metafactory(
-                    lookup,
-                    "invoke",
-                    MethodType.methodType(
-                            EventInvoker.class,
-                            listener.getClass()
-                    ),
-                    MethodType.methodType(void.class, Event.class),
-                    handle,
-                    MethodType.methodType(void.class, eventClass)
-            );
-
-            return (EventInvoker<E>) site.getTarget().invoke(listener);
-        } catch (Throwable t) {
-            MethodHandle handle = MethodHandles.lookup().unreflect(method).bindTo(listener);
-            return event -> {
-                try {
-                    handle.invoke(event);
-                } catch (Throwable ex) {
-                    throw new RuntimeException("Error executing event listener " + method, ex);
-                }
-            };
-        }
+        return event -> {
+            try {
+                adaptedHandle.invokeExact(event);
+            } catch (Throwable ex) {
+                throw new RuntimeException("Error executing event listener: " + method, ex);
+            }
+        };
     }
 }
