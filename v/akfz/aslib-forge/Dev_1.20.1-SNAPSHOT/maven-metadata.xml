@@ -3,33 +3,33 @@
   <groupId>v.akfz</groupId>
   <artifactId>aslib-forge</artifactId>
   <versioning>
-    <lastUpdated>20260823131323</lastUpdated>
+    <lastUpdated>20260823131940</lastUpdated>
     <snapshot>
-      <timestamp>20260823.131323</timestamp>
+      <timestamp>20260823.131940</timestamp>
       <buildNumber>1</buildNumber>
     </snapshot>
     <snapshotVersions>
       <snapshotVersion>
-        <extension>pom</extension>
-        <value>Dev_1.20.1-20260823.131323-1</value>
-        <updated>20260823131323</updated>
+        <classifier>javadoc</classifier>
+        <extension>jar</extension>
+        <value>Dev_1.20.1-20260823.131940-1</value>
+        <updated>20260823131940</updated>
       </snapshotVersion>
       <snapshotVersion>
         <classifier>sources</classifier>
         <extension>jar</extension>
-        <value>Dev_1.20.1-20260823.131323-1</value>
-        <updated>20260823131323</updated>
-      </snapshotVersion>
-      <snapshotVersion>
-        <classifier>javadoc</classifier>
-        <extension>jar</extension>
-        <value>Dev_1.20.1-20260823.131323-1</value>
-        <updated>20260823131323</updated>
+        <value>Dev_1.20.1-20260823.131940-1</value>
+        <updated>20260823131940</updated>
       </snapshotVersion>
       <snapshotVersion>
         <extension>jar</extension>
-        <value>Dev_1.20.1-20260823.131323-1</value>
-        <updated>20260823131323</updated>
+        <value>Dev_1.20.1-20260823.131940-1</value>
+        <updated>20260823131940</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>Dev_1.20.1-20260823.131940-1</value>
+        <updated>20260823131940</updated>
       </snapshotVersion>
     </snapshotVersions>
   </versioning>
