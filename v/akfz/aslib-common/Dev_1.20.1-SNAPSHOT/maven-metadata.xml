@@ -3,33 +3,33 @@
   <groupId>v.akfz</groupId>
   <artifactId>aslib-common</artifactId>
   <versioning>
-    <lastUpdated>20260822140955</lastUpdated>
+    <lastUpdated>20260823110925</lastUpdated>
     <snapshot>
-      <timestamp>20260822.140955</timestamp>
+      <timestamp>20260823.110925</timestamp>
       <buildNumber>1</buildNumber>
     </snapshot>
     <snapshotVersions>
       <snapshotVersion>
-        <extension>jar</extension>
-        <value>Dev_1.20.1-20260822.140955-1</value>
-        <updated>20260822140955</updated>
-      </snapshotVersion>
-      <snapshotVersion>
         <extension>pom</extension>
-        <value>Dev_1.20.1-20260822.140955-1</value>
-        <updated>20260822140955</updated>
+        <value>Dev_1.20.1-20260823.110925-1</value>
+        <updated>20260823110925</updated>
       </snapshotVersion>
       <snapshotVersion>
         <classifier>javadoc</classifier>
         <extension>jar</extension>
-        <value>Dev_1.20.1-20260822.140955-1</value>
-        <updated>20260822140955</updated>
+        <value>Dev_1.20.1-20260823.110925-1</value>
+        <updated>20260823110925</updated>
       </snapshotVersion>
       <snapshotVersion>
         <classifier>sources</classifier>
         <extension>jar</extension>
-        <value>Dev_1.20.1-20260822.140955-1</value>
-        <updated>20260822140955</updated>
+        <value>Dev_1.20.1-20260823.110925-1</value>
+        <updated>20260823110925</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>Dev_1.20.1-20260823.110925-1</value>
+        <updated>20260823110925</updated>
       </snapshotVersion>
     </snapshotVersions>
   </versioning>
