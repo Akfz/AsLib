@@ -94,9 +94,14 @@ public final class EventBus {
             Method method,
             Class<E> eventClass
     ) throws Throwable {
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+
+        MethodHandle boundHandle = lookup.unreflect(method).bindTo(listener);
+        MethodHandle adaptedHandle = boundHandle.asType(MethodType.methodType(void.class, Event.class));
+
         return event -> {
             try {
-                method.invoke(listener, event);
+                adaptedHandle.invokeExact(event);
             } catch (Throwable ex) {
                 throw new RuntimeException("Error executing event listener: " + method, ex);
             }
