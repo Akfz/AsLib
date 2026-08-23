@@ -94,7 +94,7 @@ public final class EventBus {
             Method method,
             Class<E> eventClass
     ) throws Throwable {
-        MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(listener.getClass(), MethodHandles.lookup());
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
 
         MethodHandle boundHandle = lookup.unreflect(method).bindTo(listener);
         MethodHandle adaptedHandle = boundHandle.asType(MethodType.methodType(void.class, Event.class));
