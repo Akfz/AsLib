@@ -28,6 +28,10 @@ public class RegistriesProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        if (roundEnv.processingOver()) {
+            return true;
+        }
+
         Filer filer = processingEnv.getFiler();
         Messager messager = processingEnv.getMessager();
 
@@ -199,10 +203,6 @@ public class RegistriesProcessor extends AbstractProcessor {
 
                 writer.write("    public static void registerAll() {\n");
 
-                writer.write("        try {\n");
-                writer.write("            Class.forName(\"" + fullRegistryClassName + "\");\n");
-                writer.write("        } catch (Throwable ignored) {}\n\n");
-
                 java.util.Set<String> usedRegistries = new java.util.LinkedHashSet<>();
                 for (RegistryFieldData field : fields) {
                     if (field.type != RegistryType.COMMAND && field.type != RegistryType.INSERT) {
@@ -225,6 +225,10 @@ public class RegistriesProcessor extends AbstractProcessor {
                     }
                 }
                 writer.write("\n");
+
+                writer.write("        try {\n");
+                writer.write("            Class.forName(\"" + fullRegistryClassName + "\");\n");
+                writer.write("        } catch (Throwable ignored) {}\n\n");
 
                 for (RegistryFieldData field : fields) {
                     if (field.type == RegistryType.COMMAND) {

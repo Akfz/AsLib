@@ -59,9 +59,6 @@ subprojects {
         evaluationDependsOn(':common')
         sourceSets.main.java.srcDirs += project(':common').sourceSets.main.java.srcDirs
         sourceSets.main.resources.srcDirs += project(':common').sourceSets.main.resources.srcDirs
-        dependencies {
-            implementation project(':common')
-        }
     }
 
     tasks.processResources {
