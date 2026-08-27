@@ -37,14 +37,10 @@ minecraft {
 
         client {
             property 'mixin.config', "${project.mod_id}.mixins.json"
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
         }
 
         server {
             property 'mixin.config', "${project.mod_id}.mixins.json"
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
         }
 
         data {
@@ -68,20 +64,11 @@ mixin {
     config "${project.mod_id}.mixins.json"
 }
 
-def getModProperties() {
-    if (project.hasProperty('modProperties')) return project.property('modProperties')
-    if (project.parent?.ext?.has('modProperties')) return project.parent.ext.modProperties
-    if (rootProject.ext.has('modProperties')) return rootProject.ext.modProperties
-    return [:]
-}
-
 tasks.named('processResources', ProcessResources).configure {
-    def props = getModProperties()
-
-    inputs.properties props
+    inputs.properties rootProject.ext.modProperties
 
     filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
-        expand props
+        expand rootProject.ext.modProperties
     }
 }
 
@@ -93,6 +80,10 @@ tasks.named('compileJava', JavaCompile) {
 tasks.named('jar', Jar).configure {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from sourceSets.main.output
+
+    from {
+        configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 
     destinationDirectory.set(layout.buildDirectory.dir("libs"))
     archiveFileName.set("${project.archives_base_name}-${project.mod_version}-forge.jar")
@@ -114,6 +105,10 @@ tasks.named('jar', Jar).configure {
 tasks.register('devJar', Jar) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from sourceSets.main.output
+
+    from {
+        configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 
     destinationDirectory.set(layout.buildDirectory.dir("libs"))
     archiveFileName.set("${project.archives_base_name}-${project.mod_version}-forge-dev.jar")

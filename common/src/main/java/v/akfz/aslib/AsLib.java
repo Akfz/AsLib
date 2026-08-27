@@ -16,6 +16,7 @@ import v.akfz.aslib.network.bundle.BundlePayloadPacket;
 import v.akfz.db.generator.GenerateInitializer;
 import v.akfz.db.generator.LoaderType;
 
+//fix forge resourcepacks (не работают вроде)
 @GenerateInitializer(loader = LoaderType.Both, modId = "aslib")
 public final class AsLib {
 

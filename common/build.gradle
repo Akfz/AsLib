@@ -1,9 +1,15 @@
 plugins {
     id 'fabric-loom'
+    id 'maven-publish'
 }
 
 base {
     archivesName = "${project.archives_base_name}-common"
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
 }
 
 repositories {
@@ -42,22 +48,14 @@ dependencies {
     def mixinExtrasVer = project.findProperty('mixinextras_version') ?: '0.4.1'
     compileOnly "io.github.llamalad7:mixinextras-common:${mixinExtrasVer}"
     annotationProcessor "io.github.llamalad7:mixinextras-common:${mixinExtrasVer}"
-}
-
-def getModProperties() {
-    if (project.hasProperty('modProperties')) return project.property('modProperties')
-    if (project.parent?.ext?.has('modProperties')) return project.parent.ext.modProperties
-    if (rootProject.ext.has('modProperties')) return rootProject.ext.modProperties
-    return [:]
+    annotationProcessor "org.spongepowered:mixin:${project.mixin_version}:processor"
 }
 
 tasks.named('processResources', ProcessResources).configure {
-    def props = getModProperties()
-
-    inputs.properties props
+    inputs.properties rootProject.ext.modProperties
 
     filesMatching('fabric.mod.json') {
-        expand props
+        expand rootProject.ext.modProperties
     }
 }
 
@@ -72,6 +70,22 @@ tasks.named('javadoc', Javadoc).configure {
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from sourceSets.main.output
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = "${project.archives_base_name}-common"
+            from components.java
+        }
+    }
+    repositories {
+        if (project.hasProperty('publishing-dir')) {
+            maven {
+                url = rootProject.file(project.property('publishing-dir'))
+            }
+        }
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
