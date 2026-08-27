@@ -77,10 +77,12 @@ jar {
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        mavenCommon(MavenPublication) {
             artifactId = "${project.archives_base_name}-common"
 
-            from components.java
+            artifact jar
+            artifact sourcesJar
+            artifact javadocJar
 
             pom.withXml {
                 def dependenciesNode = asNode().appendNode('dependencies')
