@@ -74,9 +74,8 @@ jar {
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        mavenCommon(MavenPublication) {
             artifactId = "${project.archives_base_name}-common"
-
             from components.java
         }
     }
