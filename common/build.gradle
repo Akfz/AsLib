@@ -48,7 +48,10 @@ dependencies {
     def mixinExtrasVer = project.findProperty('mixinextras_version') ?: '0.4.1'
     compileOnly "io.github.llamalad7:mixinextras-common:${mixinExtrasVer}"
     annotationProcessor "io.github.llamalad7:mixinextras-common:${mixinExtrasVer}"
-    //annotationProcessor "org.spongepowered:mixin:${project.mixin_version}:processor"
+}
+
+tasks.named('remapJar').configure {
+    enabled = false
 }
 
 tasks.named('processResources', ProcessResources).configure {
@@ -77,10 +80,7 @@ publishing {
         mavenCommon(MavenPublication) {
             artifactId = "${project.archives_base_name}-common"
 
-            artifact remapJar
-
-            artifact sourcesJar
-            artifact javadocJar
+            from components.java
 
             pom.withXml {
                 def dependenciesNode = asNode().appendNode('dependencies')
