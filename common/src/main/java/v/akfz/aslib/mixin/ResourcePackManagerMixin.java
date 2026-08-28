@@ -16,7 +16,12 @@ import java.util.*;
 
 @Mixin(PackRepository.class)
 public class ResourcePackManagerMixin implements ResourcePackExpander {
-    @Unique private final Set<RepositorySource> aslib$additionalProviders = new HashSet<>();
+
+    @Unique
+    private final Set<RepositorySource> aslib$additionalProviders = new LinkedHashSet<>();
+
+    @Unique
+    private boolean aslib$staticProvidersRegistered = false;
 
     @Override
     public void addProvider(RepositorySource provider) {
@@ -30,18 +35,25 @@ public class ResourcePackManagerMixin implements ResourcePackExpander {
 
     @Inject(method = "discoverAvailable", at = @At("HEAD"))
     private void aslib$registerDynamicPacks(CallbackInfoReturnable<Map<String, Pack>> cir) {
-        PackRepository repo = (PackRepository) (Object) this;
-        DynamicDataPack.registerToRepository(repo);
-        ConfigPack.registerToRepository(repo);
+        if (!aslib$staticProvidersRegistered) {
+            aslib$staticProvidersRegistered = true;
+            PackRepository repo = (PackRepository) (Object) this;
+            DynamicDataPack.registerToRepository(repo);
+            ConfigPack.registerToRepository(repo);
+        }
     }
 
     @Inject(method = "discoverAvailable", at = @At("RETURN"), cancellable = true)
     private void aslib$injectAdditionalProviders(CallbackInfoReturnable<Map<String, Pack>> cir) {
         Map<String, Pack> originalMap = cir.getReturnValue();
-        Map<String, Pack> extendedMap = new TreeMap<>(originalMap);
+        Map<String, Pack> extendedMap = new LinkedHashMap<>(originalMap);
 
         for (RepositorySource provider : this.aslib$additionalProviders) {
-            provider.loadPacks(profile -> extendedMap.put(profile.getId(), profile));
+            provider.loadPacks(profile -> {
+                if (!extendedMap.containsKey(profile.getId())) {
+                    extendedMap.put(profile.getId(), profile);
+                }
+            });
         }
 
         cir.setReturnValue(Collections.unmodifiableMap(extendedMap));
@@ -50,7 +62,6 @@ public class ResourcePackManagerMixin implements ResourcePackExpander {
     @Inject(method = "rebuildSelected", at = @At("RETURN"), cancellable = true)
     private void aslib$forceInjectRequiredPacks(Collection<String> collection, CallbackInfoReturnable<List<Pack>> cir) {
         List<Pack> originalSelected = cir.getReturnValue();
-
         List<Pack> extendedSelected = new ArrayList<>(originalSelected);
         boolean modified = false;
 
@@ -60,14 +71,14 @@ public class ResourcePackManagerMixin implements ResourcePackExpander {
 
             for (Pack pack : customPacks) {
                 if (pack.isRequired() && !extendedSelected.contains(pack)) {
-                    pack.getDefaultPosition().insert(extendedSelected, pack, com.google.common.base.Functions.identity(), false);
+                    extendedSelected.add(0, pack);
                     modified = true;
                 }
             }
         }
 
         if (modified) {
-            cir.setReturnValue(List.copyOf(extendedSelected));
+            cir.setReturnValue(Collections.unmodifiableList(extendedSelected));
         }
     }
 }
