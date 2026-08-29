@@ -1,5 +1,6 @@
 package v.akfz.aslib.resourcepack;
 
+import net.minecraft.SharedConstants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
@@ -8,13 +9,13 @@ import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
@@ -23,23 +24,24 @@ import java.util.stream.Stream;
  */
 public class SimpleFileResourcePack implements PackResources, FileResourcePack {
     private final String pack_name;
-    private final String namespace;
-    private final Set<String> known_namespaces;
     private final Path root;
+
+    private final Set<String> clientNamespaces = ConcurrentHashMap.newKeySet();
+    private final Set<String> serverNamespaces = ConcurrentHashMap.newKeySet();
 
     private final Map<String, Path> cacheFiles = new ConcurrentHashMap<>();
 
-    public SimpleFileResourcePack(String packName, Path root, String namespace) {
+    public SimpleFileResourcePack(String packName, Path root, String primaryNamespace) {
         this.pack_name = packName;
         this.root = root;
-        this.namespace = namespace;
-        this.known_namespaces = Set.of(namespace);
+        this.clientNamespaces.add(primaryNamespace);
+        this.serverNamespaces.add(primaryNamespace);
         preloadCache();
     }
 
     @Override
     public String getSimpleNamespace() {
-        return this.namespace;
+        return clientNamespaces.isEmpty() ? "unknown" : clientNamespaces.iterator().next();
     }
 
     public Map<String, Path> getCache() {
@@ -51,6 +53,14 @@ public class SimpleFileResourcePack implements PackResources, FileResourcePack {
             stream.filter(Files::isRegularFile).forEach(path -> {
                 String relativePath = root.relativize(path).toString().replace("\\", "/");
                 cacheFiles.put(relativePath, path);
+
+                if (relativePath.startsWith("assets/")) {
+                    String[] parts = relativePath.split("/");
+                    if (parts.length > 1) clientNamespaces.add(parts[1]);
+                } else if (relativePath.startsWith("data/")) {
+                    String[] parts = relativePath.split("/");
+                    if (parts.length > 1) serverNamespaces.add(parts[1]);
+                }
             });
         } catch (IOException e) {
             System.err.println("Error preloading cache for " + pack_name + ": " + e.getMessage());
@@ -60,6 +70,8 @@ public class SimpleFileResourcePack implements PackResources, FileResourcePack {
     @Override
     public void refreshCache() {
         cacheFiles.clear();
+        clientNamespaces.clear();
+        serverNamespaces.clear();
         preloadCache();
     }
 
@@ -71,6 +83,13 @@ public class SimpleFileResourcePack implements PackResources, FileResourcePack {
     @Override
     public @Nullable IoSupplier<InputStream> getRootResource(String... strings) {
         String pathStr = String.join("/", strings);
+
+        if ("pack.mcmeta".equals(pathStr)) {
+            int format = SharedConstants.getCurrentVersion().getPackVersion(PackType.CLIENT_RESOURCES);
+            String json = "{\"pack\":{\"description\":\"" + this.pack_name + "\",\"pack_format\":" + format + "}}";
+            return () -> new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+        }
+
         Path filePath = root.resolve(pathStr);
         if (Files.exists(filePath)) {
             return IoSupplier.create(filePath);
@@ -80,13 +99,13 @@ public class SimpleFileResourcePack implements PackResources, FileResourcePack {
 
     @Override
     public @Nullable IoSupplier<InputStream> getResource(PackType packType, ResourceLocation resourceLocation) {
-        if (!resourceLocation.getNamespace().equals(namespace)) {
+        String namespace = resourceLocation.getNamespace();
+        if (!getNamespaces(packType).contains(namespace)) {
             return null;
         }
 
         String path = resourceLocation.getPath();
         Path filePath = cacheFiles.get(path);
-
         if (filePath == null || !Files.exists(filePath)) {
             String folderPrefix = (packType == PackType.CLIENT_RESOURCES ? "assets/" : "data/") + namespace + "/";
             filePath = cacheFiles.get(folderPrefix + path);
@@ -95,23 +114,21 @@ public class SimpleFileResourcePack implements PackResources, FileResourcePack {
         if (filePath != null && Files.exists(filePath)) {
             return IoSupplier.create(filePath);
         }
-
         return null;
     }
 
     @Override
     public void listResources(PackType packType, String namespace, String prefix, ResourceOutput resourceOutput) {
-        if (!namespace.equals(this.namespace)) {
+        if (!getNamespaces(packType).contains(namespace)) {
             return;
         }
 
         String folderPrefix = (packType == PackType.CLIENT_RESOURCES ? "assets/" : "data/") + namespace + "/";
-
         for (Map.Entry<String, Path> entry : cacheFiles.entrySet()) {
             String key = entry.getKey();
             Path filePath = entry.getValue();
-
             String relativePath = key;
+
             if (key.startsWith(folderPrefix)) {
                 relativePath = key.substring(folderPrefix.length());
             }
@@ -125,7 +142,7 @@ public class SimpleFileResourcePack implements PackResources, FileResourcePack {
 
     @Override
     public @NotNull Set<String> getNamespaces(PackType packType) {
-        return known_namespaces;
+        return packType == PackType.CLIENT_RESOURCES ? clientNamespaces : serverNamespaces;
     }
 
     @Override

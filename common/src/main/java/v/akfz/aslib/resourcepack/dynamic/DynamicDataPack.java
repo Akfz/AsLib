@@ -3,6 +3,7 @@ package v.akfz.aslib.resourcepack.dynamic;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
@@ -71,6 +72,12 @@ public class DynamicDataPack implements PackResources {
 
     @Override
     public @Nullable IoSupplier<InputStream> getRootResource(String... strings) {
+        String pathStr = String.join("/", strings);
+        if ("pack.mcmeta".equals(pathStr)) {
+            int format = SharedConstants.getCurrentVersion().getPackVersion(PackType.SERVER_DATA);
+            String json = "{\"pack\":{\"description\":\"ASLib Dynamic DataPack\",\"pack_format\":" + format + "}}";
+            return () -> new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+        }
         return null;
     }
 
