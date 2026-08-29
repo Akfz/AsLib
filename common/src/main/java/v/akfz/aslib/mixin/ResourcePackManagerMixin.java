@@ -7,13 +7,9 @@ import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.packs.repository.RepositorySource;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.*;
@@ -21,38 +17,65 @@ import java.util.*;
 @Mixin(PackRepository.class)
 public class ResourcePackManagerMixin implements ResourcePackExpander {
 
-    @Mutable @Shadow @Final private Set<RepositorySource> sources;
+    @Unique
+    private final Set<RepositorySource> aslib$additionalProviders = new LinkedHashSet<>();
 
-    @Shadow private Map<String, Pack> available;
+    @Unique
+    private final Map<String, Pack> aslib$cachedAdditionalPacks = new LinkedHashMap<>();
+
+    @Unique
+    private boolean aslib$providersLoaded = false;
 
     @Unique
     private boolean aslib$staticProvidersRegistered = false;
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void aslib$makeSourcesMutable(RepositorySource[] sourcesArray, CallbackInfo ci) {
-        this.sources = new LinkedHashSet<>(this.sources);
-    }
-
     @Override
     public void addProvider(RepositorySource provider) {
-        if (!this.sources.contains(provider)) {
-            this.sources.add(provider);
+        if (this.aslib$additionalProviders.add(provider)) {
+            this.aslib$providersLoaded = false;
         }
     }
 
     @Override
     public void removeProvider(RepositorySource provider) {
-        this.sources.remove(provider);
+        if (this.aslib$additionalProviders.remove(provider)) {
+            this.aslib$providersLoaded = false;
+        }
     }
 
     @Inject(method = "discoverAvailable", at = @At("HEAD"))
-    private void aslib$registerDynamicPacks(CallbackInfoReturnable<Map<String, Pack>> cir) {
+    private void aslib$registerAndLoadDynamicPacks(CallbackInfoReturnable<Map<String, Pack>> cir) {
         if (!aslib$staticProvidersRegistered) {
             aslib$staticProvidersRegistered = true;
             PackRepository repo = (PackRepository) (Object) this;
             DynamicDataPack.registerToRepository(repo);
             ConfigPack.registerToRepository(repo);
         }
+
+        if (!aslib$providersLoaded && !this.aslib$additionalProviders.isEmpty()) {
+            aslib$providersLoaded = true;
+            for (RepositorySource provider : this.aslib$additionalProviders) {
+                provider.loadPacks(pack -> {
+                    if (!this.aslib$cachedAdditionalPacks.containsKey(pack.getId())) {
+                        this.aslib$cachedAdditionalPacks.put(pack.getId(), pack);
+                    }
+                });
+            }
+        }
+    }
+
+    @Inject(method = "discoverAvailable", at = @At("RETURN"), cancellable = true)
+    private void aslib$injectAdditionalProviders(CallbackInfoReturnable<Map<String, Pack>> cir) {
+        Map<String, Pack> originalMap = cir.getReturnValue();
+        Map<String, Pack> extendedMap = new LinkedHashMap<>(originalMap);
+
+        for (Map.Entry<String, Pack> entry : this.aslib$cachedAdditionalPacks.entrySet()) {
+            if (!extendedMap.containsKey(entry.getKey())) {
+                extendedMap.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        cir.setReturnValue(Collections.unmodifiableMap(extendedMap));
     }
 
     @Inject(method = "rebuildSelected", at = @At("RETURN"), cancellable = true)
@@ -61,7 +84,7 @@ public class ResourcePackManagerMixin implements ResourcePackExpander {
         List<Pack> extendedSelected = new ArrayList<>(originalSelected);
         boolean modified = false;
 
-        for (Pack pack : this.available.values()) {
+        for (Pack pack : this.aslib$cachedAdditionalPacks.values()) {
             if (pack.isRequired() && !extendedSelected.contains(pack)) {
                 extendedSelected.add(0, pack);
                 modified = true;
