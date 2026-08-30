@@ -24,105 +24,118 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * In-memory {@link PackResources} implementation for dynamically registering virtual data pack JSON files at runtime.
- */
 public class DynamicDataPack implements PackResources {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-    private static final DynamicDataPack INSTANCE = new DynamicDataPack();
+	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+	private static final DynamicDataPack INSTANCE = new DynamicDataPack();
+	private static final Set<PackRepository> REGISTERED_REPOS = ConcurrentHashMap.newKeySet();
 
-    private static final Set<PackRepository> REGISTERED_REPOS = ConcurrentHashMap.newKeySet();
+	private final Map<ResourceLocation, byte[]> clientResources = new ConcurrentHashMap<>();
+	private final Map<ResourceLocation, byte[]> serverResources = new ConcurrentHashMap<>();
+	private final Set<String> clientNamespaces = ConcurrentHashMap.newKeySet();
+	private final Set<String> serverNamespaces = ConcurrentHashMap.newKeySet();
 
-    private final Map<ResourceLocation, byte[]> virtualFiles = new ConcurrentHashMap<>();
-    private final Set<String> namespaces = ConcurrentHashMap.newKeySet();
+	private DynamicDataPack() {}
 
-    private DynamicDataPack() {}
+	public static DynamicDataPack getInstance() {
+		return INSTANCE;
+	}
 
-    public static DynamicDataPack getInstance() {
-        return INSTANCE;
-    }
+	public static void addData(ResourceLocation location, JsonElement json) {
+		byte[] bytes = GSON.toJson(json).getBytes(StandardCharsets.UTF_8);
+		INSTANCE.serverResources.put(location, bytes);
+		INSTANCE.serverNamespaces.add(location.getNamespace());
+	}
 
-    /**
-     * Adds virtual JSON data to the dynamic data pack.
-     */
-    public static void addData(ResourceLocation location, JsonElement json) {
-        byte[] bytes = GSON.toJson(json).getBytes(StandardCharsets.UTF_8);
-        INSTANCE.virtualFiles.put(location, bytes);
-        INSTANCE.namespaces.add(location.getNamespace());
-    }
+	public static void addResource(ResourceLocation location, byte[] data) {
+		INSTANCE.clientResources.put(location, data);
+		INSTANCE.clientNamespaces.add(location.getNamespace());
+	}
 
-    /**
-     * Registers the dynamic data pack into the provided repository.
-     */
-    public static void registerToRepository(PackRepository repository) {
-        if (REGISTERED_REPOS.add(repository)) {
-            AddResourcePack.addServerData(
-                    repository,
-                    INSTANCE,
-                    Component.literal("ASLib Built-in Dynamic DataPack"),
-                    "aslib_dynamic_datapack",
-                    Component.literal("Dynamic DataPack"),
-                    true,
-                    Pack.Position.TOP,
-                    true,
-                    PackSource.BUILT_IN
-            );
-        }
-    }
+	public static void registerToRepository(PackRepository repository) {
+		if (REGISTERED_REPOS.add(repository)) {
+			AddResourcePack.add(
+					repository,
+					INSTANCE,
+					Component.literal("ASLib Dynamic Resources"),
+					"aslib_dynamic_resources",
+					Component.literal("ASLib Dynamic Resources"),
+					true,
+					Pack.Position.TOP,
+					true,
+					PackSource.BUILT_IN,
+					PackType.CLIENT_RESOURCES
+			);
 
-    @Override
-    public @Nullable IoSupplier<InputStream> getRootResource(String... strings) {
-        String pathStr = String.join("/", strings);
-        if ("pack.mcmeta".equals(pathStr)) {
-            int format = SharedConstants.getCurrentVersion().getPackVersion(PackType.SERVER_DATA);
-            String json = "{\"pack\":{\"description\":\"ASLib Dynamic DataPack\",\"pack_format\":" + format + "}}";
-            return () -> new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
-        }
-        return null;
-    }
+			AddResourcePack.addServerData(
+					repository,
+					INSTANCE,
+					Component.literal("ASLib Dynamic DataPack"),
+					"aslib_dynamic_datapack",
+					Component.literal("Dynamic DataPack"),
+					true,
+					Pack.Position.TOP,
+					true,
+					PackSource.BUILT_IN
+			);
+		}
+	}
 
-    @Override
-    public @Nullable IoSupplier<InputStream> getResource(PackType packType, ResourceLocation location) {
-        if (packType != PackType.SERVER_DATA) return null;
+	@Override
+	public @Nullable IoSupplier<InputStream> getRootResource(String... strings) {
+		String pathStr = String.join("/", strings);
 
-        byte[] data = virtualFiles.get(location);
-        if (data != null) {
-            return () -> new ByteArrayInputStream(data);
-        }
+		if ("pack.mcmeta".equals(pathStr)) {
+			int format = SharedConstants.getCurrentVersion().getPackVersion(PackType.CLIENT_RESOURCES);
+			String json = "{\"pack\":{\"description\":\"ASLib Dynamic Pack\",\"pack_format\":" + format + "}}";
+			return () -> new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+		}
+		return null;
+	}
 
-        return null;
-    }
+	@Override
+	public @Nullable IoSupplier<InputStream> getResource(PackType packType, ResourceLocation location) {
+		Map<ResourceLocation, byte[]> resources =
+				packType == PackType.CLIENT_RESOURCES ? clientResources : serverResources;
 
-    @Override
-    public void listResources(PackType packType, String namespace, String prefix, ResourceOutput resourceOutput) {
-        if (packType != PackType.SERVER_DATA) return;
+		byte[] data = resources.get(location);
+		if (data != null) {
+			return () -> new ByteArrayInputStream(data);
+		}
+		return null;
+	}
 
-        for (Map.Entry<ResourceLocation, byte[]> entry : virtualFiles.entrySet()) {
-            ResourceLocation loc = entry.getKey();
-            if (loc.getNamespace().equals(namespace) && loc.getPath().startsWith(prefix)) {
-                byte[] bytes = entry.getValue();
-                resourceOutput.accept(loc, () -> new ByteArrayInputStream(bytes));
-            }
-        }
-    }
+	@Override
+	public void listResources(PackType packType, String namespace, String prefix, ResourceOutput resourceOutput) {
+		Map<ResourceLocation, byte[]> resources =
+				packType == PackType.CLIENT_RESOURCES ? clientResources : serverResources;
 
-    @Override
-    public @NotNull Set<String> getNamespaces(PackType packType) {
-        return packType == PackType.SERVER_DATA ? namespaces : Set.of();
-    }
+		for (Map.Entry<ResourceLocation, byte[]> entry : resources.entrySet()) {
+			ResourceLocation loc = entry.getKey();
+			if (loc.getNamespace().equals(namespace) && loc.getPath().startsWith(prefix)) {
+				byte[] bytes = entry.getValue();
+				resourceOutput.accept(loc, () -> new ByteArrayInputStream(bytes));
+			}
+		}
+	}
 
-    @Override
-    public @Nullable <T> T getMetadataSection(MetadataSectionSerializer<T> metadataSectionSerializer) {
-        return null;
-    }
+	@Override
+	public @NotNull Set<String> getNamespaces(PackType packType) {
+		return packType == PackType.CLIENT_RESOURCES ? clientNamespaces : serverNamespaces;
+	}
 
-    @Override
-    public String packId() {
-        return "aslib_dynamic_datapack";
-    }
+	@Override
+	public @Nullable <T> T getMetadataSection(MetadataSectionSerializer<T> metadataSectionSerializer) {
+		return null;
+	}
 
-    @Override
-    public void close() {
-        virtualFiles.clear();
-    }
+	@Override
+	public String packId() {
+		return "aslib_dynamic_pack";
+	}
+
+	@Override
+	public void close() {
+		clientResources.clear();
+		serverResources.clear();
+	}
 }

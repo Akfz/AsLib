@@ -95,6 +95,10 @@ public abstract class AbstractWidget implements Renderable, GuiEventListener, Na
         mainRenderer.render(graphics, mouseX, mouseY, delta, x, y, width, height, new RenderExtras());
     }
 
+    public void setMainRenderer(RenderPart mainRenderer) {
+        this.mainRenderer = mainRenderer;
+    }
+
     @Override
     public void setFocused(boolean focused) {
         this.focused = focused;

@@ -13,7 +13,7 @@ public final class ConfigPackRegistry {
 
     @FunctionalInterface
     public interface PackFactory {
-        SimpleFileResourcePack create(Path rpDir, ConfigPackData data);
+        SimpleFileResourcePack create(Path rpDir,ConfigPackData data);
     }
 
     private static final Map<String, PackFactory> FACTORIES = new ConcurrentHashMap<>();

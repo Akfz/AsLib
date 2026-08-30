@@ -3,7 +3,6 @@ package v.akfz.aslib.mixin.client;
 import v.akfz.aslib.AsLib;
 import v.akfz.aslib.event.impl.FirstTickEvent;
 import v.akfz.aslib.event.impl.TickUpdater;
-import v.akfz.aslib.resourcepack.AsLibResourceReloader;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.profiling.InactiveProfiler;
@@ -18,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Mixin(Minecraft.class)
 public class MinecraftClientMixin {
-
+/*
     @Unique
     private static final AsLibResourceReloader ASLIB_RELOADER = new AsLibResourceReloader();
 
@@ -38,6 +37,7 @@ public class MinecraftClientMixin {
                 client
         );
     }
+ */
 
     @Unique
     private boolean isStarted = false;

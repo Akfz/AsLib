@@ -10,6 +10,7 @@
     "client.ClientGamePacketListenerMixin",
     "client.CameraMixin",
     "client.GameRendererMixin",
+    "ReloadableResourceManagerMixin",
     "ResourcePackManagerMixin",
     "CommandsMixin",
     "MinecraftSrvMixin",

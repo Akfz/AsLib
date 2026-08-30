@@ -19,144 +19,143 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-/**
- * File-system backed implementation of {@link PackResources} that caches files from disk.
- */
 public class SimpleFileResourcePack implements PackResources, FileResourcePack {
-    private final String pack_name;
-    private final Path root;
+	private final String pack_name;
+	private final String namespace;
+	private final Path root;
+	private final Map<String, Path> cacheFiles = new ConcurrentHashMap<>();
+	private final Set<String> clientNamespaces = ConcurrentHashMap.newKeySet();
+	private final Set<String> serverNamespaces = ConcurrentHashMap.newKeySet();
 
-    private final Set<String> clientNamespaces = ConcurrentHashMap.newKeySet();
-    private final Set<String> serverNamespaces = ConcurrentHashMap.newKeySet();
+	public SimpleFileResourcePack(String packName, Path root, String namespace) {
+		this.pack_name = packName;
+		this.root = root;
+		this.namespace = namespace;
+		this.clientNamespaces.add(namespace);
+		this.serverNamespaces.add(namespace);
+		preloadCache();
+	}
 
-    private final Map<String, Path> cacheFiles = new ConcurrentHashMap<>();
+	@Override
+	public String getSimpleNamespace() {
+		return this.namespace;
+	}
 
-    public SimpleFileResourcePack(String packName, Path root, String primaryNamespace) {
-        this.pack_name = packName;
-        this.root = root;
-        this.clientNamespaces.add(primaryNamespace);
-        this.serverNamespaces.add(primaryNamespace);
-        preloadCache();
-    }
+	public Map<String, Path> getCache() {
+		return new HashMap<>(cacheFiles);
+	}
 
-    @Override
-    public String getSimpleNamespace() {
-        return clientNamespaces.isEmpty() ? "unknown" : clientNamespaces.iterator().next();
-    }
+	private void preloadCache() {
+		try (Stream<Path> stream = Files.walk(root)) {
+			stream.filter(Files::isRegularFile).forEach(path -> {
+				String relativePath = root.relativize(path).toString().replace("\\", "/");
+				cacheFiles.put(relativePath, path);
 
-    public Map<String, Path> getCache() {
-        return new HashMap<>(cacheFiles);
-    }
+				if (relativePath.startsWith("assets/")) {
+					String[] parts = relativePath.split("/");
+					if (parts.length > 1) clientNamespaces.add(parts[1]);
+				} else if (relativePath.startsWith("data/")) {
+					String[] parts = relativePath.split("/");
+					if (parts.length > 1) serverNamespaces.add(parts[1]);
+				}
+			});
+		} catch (IOException e) {
+			System.err.println("Error preloading cache for " + pack_name + ": " + e.getMessage());
+		}
+	}
 
-    private void preloadCache() {
-        try (Stream<Path> stream = Files.walk(root)) {
-            stream.filter(Files::isRegularFile).forEach(path -> {
-                String relativePath = root.relativize(path).toString().replace("\\", "/");
-                cacheFiles.put(relativePath, path);
+	@Override
+	public void refreshCache() {
+		cacheFiles.clear();
+		clientNamespaces.clear();
+		serverNamespaces.clear();
+		clientNamespaces.add(namespace);
+		serverNamespaces.add(namespace);
+		preloadCache();
+	}
 
-                if (relativePath.startsWith("assets/")) {
-                    String[] parts = relativePath.split("/");
-                    if (parts.length > 1) clientNamespaces.add(parts[1]);
-                } else if (relativePath.startsWith("data/")) {
-                    String[] parts = relativePath.split("/");
-                    if (parts.length > 1) serverNamespaces.add(parts[1]);
-                }
-            });
-        } catch (IOException e) {
-            System.err.println("Error preloading cache for " + pack_name + ": " + e.getMessage());
-        }
-    }
+	@Override
+	public PackResources getPack() {
+		return this;
+	}
 
-    @Override
-    public void refreshCache() {
-        cacheFiles.clear();
-        clientNamespaces.clear();
-        serverNamespaces.clear();
-        preloadCache();
-    }
+	@Override
+	public @Nullable IoSupplier<InputStream> getRootResource(String... strings) {
+		String pathStr = String.join("/", strings);
 
-    @Override
-    public PackResources getPack() {
-        return this;
-    }
+		if ("pack.mcmeta".equals(pathStr)) {
+			int format = SharedConstants.getCurrentVersion().getPackVersion(PackType.CLIENT_RESOURCES);
+			String json = "{\"pack\":{\"description\":\"" + this.pack_name + "\",\"pack_format\":" + format + "}}";
+			return () -> new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+		}
 
-    @Override
-    public @Nullable IoSupplier<InputStream> getRootResource(String... strings) {
-        String pathStr = String.join("/", strings);
+		Path filePath = root.resolve(pathStr);
+		if (Files.exists(filePath)) {
+			return IoSupplier.create(filePath);
+		}
+		return null;
+	}
 
-        if ("pack.mcmeta".equals(pathStr)) {
-            int format = SharedConstants.getCurrentVersion().getPackVersion(PackType.CLIENT_RESOURCES);
-            String json = "{\"pack\":{\"description\":\"" + this.pack_name + "\",\"pack_format\":" + format + "}}";
-            return () -> new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
-        }
+	@Override
+	public @Nullable IoSupplier<InputStream> getResource(PackType packType, ResourceLocation resourceLocation) {
+		String namespace = resourceLocation.getNamespace();
+		if (!getNamespaces(packType).contains(namespace)) {
+			return null;
+		}
 
-        Path filePath = root.resolve(pathStr);
-        if (Files.exists(filePath)) {
-            return IoSupplier.create(filePath);
-        }
-        return null;
-    }
+		String path = resourceLocation.getPath();
+		Path filePath = cacheFiles.get(path);
+		if (filePath == null || !Files.exists(filePath)) {
+			String folderPrefix = (packType == PackType.CLIENT_RESOURCES ? "assets/" : "data/") + namespace + "/";
+			filePath = cacheFiles.get(folderPrefix + path);
+		}
 
-    @Override
-    public @Nullable IoSupplier<InputStream> getResource(PackType packType, ResourceLocation resourceLocation) {
-        String namespace = resourceLocation.getNamespace();
-        if (!getNamespaces(packType).contains(namespace)) {
-            return null;
-        }
+		if (filePath != null && Files.exists(filePath)) {
+			return IoSupplier.create(filePath);
+		}
+		return null;
+	}
 
-        String path = resourceLocation.getPath();
-        Path filePath = cacheFiles.get(path);
-        if (filePath == null || !Files.exists(filePath)) {
-            String folderPrefix = (packType == PackType.CLIENT_RESOURCES ? "assets/" : "data/") + namespace + "/";
-            filePath = cacheFiles.get(folderPrefix + path);
-        }
+	@Override
+	public void listResources(PackType packType, String namespace, String prefix, ResourceOutput resourceOutput) {
+		if (!getNamespaces(packType).contains(namespace)) {
+			return;
+		}
 
-        if (filePath != null && Files.exists(filePath)) {
-            return IoSupplier.create(filePath);
-        }
-        return null;
-    }
+		String folderPrefix = (packType == PackType.CLIENT_RESOURCES ? "assets/" : "data/") + namespace + "/";
+		for (Map.Entry<String, Path> entry : cacheFiles.entrySet()) {
+			String key = entry.getKey();
+			Path filePath = entry.getValue();
+			String relativePath = key;
 
-    @Override
-    public void listResources(PackType packType, String namespace, String prefix, ResourceOutput resourceOutput) {
-        if (!getNamespaces(packType).contains(namespace)) {
-            return;
-        }
+			if (key.startsWith(folderPrefix)) {
+				relativePath = key.substring(folderPrefix.length());
+			}
 
-        String folderPrefix = (packType == PackType.CLIENT_RESOURCES ? "assets/" : "data/") + namespace + "/";
-        for (Map.Entry<String, Path> entry : cacheFiles.entrySet()) {
-            String key = entry.getKey();
-            Path filePath = entry.getValue();
-            String relativePath = key;
+			if (relativePath.startsWith(prefix)) {
+				ResourceLocation id = new ResourceLocation(namespace, relativePath);
+				resourceOutput.accept(id, IoSupplier.create(filePath));
+			}
+		}
+	}
 
-            if (key.startsWith(folderPrefix)) {
-                relativePath = key.substring(folderPrefix.length());
-            }
+	@Override
+	public @NotNull Set<String> getNamespaces(PackType packType) {
+		return packType == PackType.CLIENT_RESOURCES ? clientNamespaces : serverNamespaces;
+	}
 
-            if (relativePath.startsWith(prefix)) {
-                ResourceLocation id = new ResourceLocation(namespace, relativePath);
-                resourceOutput.accept(id, IoSupplier.create(filePath));
-            }
-        }
-    }
+	@Override
+	public @Nullable <T> T getMetadataSection(MetadataSectionSerializer<T> metadataSectionSerializer) throws IOException {
+		return null;
+	}
 
-    @Override
-    public @NotNull Set<String> getNamespaces(PackType packType) {
-        return packType == PackType.CLIENT_RESOURCES ? clientNamespaces : serverNamespaces;
-    }
+	@Override
+	public String packId() {
+		return pack_name;
+	}
 
-    @Override
-    public @Nullable <T> T getMetadataSection(MetadataSectionSerializer<T> metadataSectionSerializer) throws IOException {
-        return null;
-    }
-
-    @Override
-    public String packId() {
-        return pack_name;
-    }
-
-    @Override
-    public void close() {
-        cacheFiles.clear();
-    }
+	@Override
+	public void close() {
+		cacheFiles.clear();
+	}
 }
