@@ -48,7 +48,10 @@ public class SimpleFileResourcePack implements PackResources, FileResourcePack {
 	private void preloadCache() {
 		try (Stream<Path> stream = Files.walk(root)) {
 			stream.filter(Files::isRegularFile).forEach(path -> {
-				String relativePath = root.relativize(path).toString().replace("\\", "/");
+				String relativePath = root.relativize(path).toString()
+						.replace("\\", "/")
+						.toLowerCase(Locale.ROOT);
+
 				cacheFiles.put(relativePath, path);
 
 				if (relativePath.startsWith("assets/")) {
