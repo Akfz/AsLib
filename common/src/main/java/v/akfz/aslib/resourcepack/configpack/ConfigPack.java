@@ -79,6 +79,17 @@ public class ConfigPack {
 		}
 	}
 
+	public static synchronized void reinstantiatePacks(String type) {
+		if (!isLoaded) return;
+		for (int i = 0; i < LOADED_PACKS.size(); i++) {
+			LoadedConfigPack holder = LOADED_PACKS.get(i);
+			if (type.equals(holder.data().type)) {
+				SimpleFileResourcePack upgraded = ConfigPackRegistry.create(type, holder.rpDir(), holder.data());
+				LOADED_PACKS.set(i, new LoadedConfigPack(holder.data(), upgraded, holder.rpDir()));
+			}
+		}
+	}
+
 	private static void findAndLoadPacks(Path startPath) {
 		try (Stream<Path> stream = Files.list(startPath)) {
 			stream.filter(path -> path.toFile().isDirectory()).forEach(path -> {
@@ -115,7 +126,7 @@ public class ConfigPack {
 		if (data == null) return;
 
 		SimpleFileResourcePack resourcePack = ConfigPackRegistry.create(data.type, rpDir, data);
-		LOADED_PACKS.add(new LoadedConfigPack(data, resourcePack));
+		LOADED_PACKS.add(new LoadedConfigPack(data, resourcePack, rpDir));
 	}
 
 	private static void createPreview(Path startPath) {
@@ -142,5 +153,5 @@ public class ConfigPack {
 		}
 	}
 
-	private record LoadedConfigPack(ConfigPackData data, SimpleFileResourcePack resourcePack) {}
+	private record LoadedConfigPack(ConfigPackData data, SimpleFileResourcePack resourcePack, Path rpDir) {}
 }

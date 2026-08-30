@@ -24,6 +24,7 @@ public final class ConfigPackRegistry {
 
     public static void register(String type, PackFactory factory) {
         FACTORIES.put(type, factory);
+        ConfigPack.reinstantiatePacks(type);
     }
 
     public static SimpleFileResourcePack create(String type, Path rpDir, ConfigPackData data) {
