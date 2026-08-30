@@ -37,19 +37,6 @@ public class ResourcePackManagerMixin implements ResourcePackExpander {
 		}
 	}
 
-	@Inject(method = "discoverAvailable", at = @At("HEAD"))
-	private void aslib$autoRegisterPacks(CallbackInfoReturnable<Map<String, Pack>> cir) {
-		try {
-			PackRepository repo = (PackRepository) (Object) this;
-			ModAssetsRegistrar.flush(repo);
-			ConfigPack.registerToRepository(repo);
-			DynamicDataPack.registerToRepository(repo);
-		} catch (Throwable t) {
-			System.err.println("[ASLib] Error during pack auto-registration");
-			t.printStackTrace();
-		}
-	}
-
 	@Override
 	public void addProvider(RepositorySource provider) {
 		this.sources.add(provider);
