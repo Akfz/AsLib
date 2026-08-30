@@ -1,5 +1,8 @@
 package v.akfz.aslib.mixin;
 
+import net.minecraft.server.packs.repository.Pack;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import v.akfz.aslib.resourcepack.ModAssetsRegistrar;
 import v.akfz.aslib.resourcepack.ResourcePackExpander;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.packs.repository.RepositorySource;
@@ -11,8 +14,11 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import v.akfz.aslib.resourcepack.configpack.ConfigPack;
+import v.akfz.aslib.resourcepack.dynamic.DynamicDataPack;
 
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Mixin(PackRepository.class)
@@ -28,6 +34,19 @@ public class ResourcePackManagerMixin implements ResourcePackExpander {
 		if (!aslib$sourcesMadeMutable) {
 			aslib$sourcesMadeMutable = true;
 			this.sources = new LinkedHashSet<>(this.sources);
+		}
+	}
+
+	@Inject(method = "discoverAvailable", at = @At("HEAD"))
+	private void aslib$autoRegisterPacks(CallbackInfoReturnable<Map<String, Pack>> cir) {
+		try {
+			PackRepository repo = (PackRepository) (Object) this;
+			ModAssetsRegistrar.flush(repo);
+			ConfigPack.registerToRepository(repo);
+			DynamicDataPack.registerToRepository(repo);
+		} catch (Throwable t) {
+			System.err.println("[ASLib] Error during pack auto-registration");
+			t.printStackTrace();
 		}
 	}
 
