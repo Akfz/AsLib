@@ -14,6 +14,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -23,6 +24,10 @@ import java.util.Set;
 })
 @SupportedSourceVersion(SourceVersion.RELEASE_17)
 public class RegistriesProcessor extends AbstractProcessor {
+
+    private static final String ASLIB_PACKAGE = "v.akfz.aslib";
+    private static final String COMMAND_HANDLER_CLASS = ASLIB_PACKAGE + ".command.CommandHandler";
+    private static final String LOADER_INTERFACE = ASLIB_PACKAGE + ".initializer.generator.IRegistryLoader";
 
     private final List<String> generatedRegistrars = new ArrayList<>();
 
@@ -35,10 +40,7 @@ public class RegistriesProcessor extends AbstractProcessor {
         Filer filer = processingEnv.getFiler();
         Messager messager = processingEnv.getMessager();
 
-        String currentTarget = processingEnv.getOptions().get("modLoaderTarget");
-        if (currentTarget == null) {
-            currentTarget = "fabric";
-        }
+        String currentTarget = processingEnv.getOptions().getOrDefault("modLoaderTarget", "fabric");
 
         List<RegistryFieldData> allAnnotatedFields = new ArrayList<>();
         for (Element element : roundEnv.getElementsAnnotatedWith(RegisterModule.class)) {
@@ -63,13 +65,12 @@ public class RegistriesProcessor extends AbstractProcessor {
 
                     if (type == RegistryType.AUTO) {
                         type = determineRegistryType(element);
-                    }
-
-                    if (type == RegistryType.AUTO) {
-                        messager.printMessage(Diagnostic.Kind.ERROR,
-                                "Could not auto-determine registry type for field " + fieldName +
-                                        " in class " + declaringClass + ". Please specify 'registry' parameter explicitly.", element);
-                        continue;
+                        if (type == RegistryType.AUTO) {
+                            messager.printMessage(Diagnostic.Kind.ERROR,
+                                    "Could not auto-determine registry type for field " + fieldName +
+                                            " in class " + declaringClass + ". Please specify 'registry' parameter explicitly.", element);
+                            continue;
+                        }
                     }
 
                     String insertCode = null;
@@ -157,28 +158,43 @@ public class RegistriesProcessor extends AbstractProcessor {
 
         while (current instanceof TypeElement typeElement) {
             String canonicalName = typeElement.getQualifiedName().toString();
-            if (canonicalName.equals("net.minecraft.world.level.block.Block")) return RegistryType.BLOCK;
-            if (canonicalName.equals("net.minecraft.world.item.Item")) return RegistryType.ITEM;
-            if (canonicalName.equals("net.minecraft.sounds.SoundEvent")) return RegistryType.SOUND_EVENT;
-            if (canonicalName.equals("net.minecraft.world.level.block.entity.BlockEntityType")) return RegistryType.BLOCK_ENTITY_TYPE;
-            if (canonicalName.equals("net.minecraft.world.entity.EntityType")) return RegistryType.ENTITY_TYPE;
-            if (canonicalName.equals("net.minecraft.world.level.material.Fluid")) return RegistryType.FLUID;
-            if (canonicalName.equals("net.minecraft.world.item.CreativeModeTab")) return RegistryType.CREATIVE_MODE_TAB;
 
-            for (TypeMirror iface : typeElement.getInterfaces()) {
-                if (iface == null) continue;
-                Element ifaceElement = typeUtils.asElement(iface);
+	        switch (canonicalName) {
+		        case "net.minecraft.world.level.block.Block" -> {
+			        return RegistryType.BLOCK;
+		        }
+		        case "net.minecraft.world.item.Item" -> {
+			        return RegistryType.ITEM;
+		        }
+		        case "net.minecraft.sounds.SoundEvent" -> {
+			        return RegistryType.SOUND_EVENT;
+		        }
+		        case "net.minecraft.world.level.block.entity.BlockEntityType" -> {
+			        return RegistryType.BLOCK_ENTITY_TYPE;
+		        }
+		        case "net.minecraft.world.entity.EntityType" -> {
+			        return RegistryType.ENTITY_TYPE;
+		        }
+		        case "net.minecraft.world.level.material.Fluid" -> {
+			        return RegistryType.FLUID;
+		        }
+		        case "net.minecraft.world.item.CreativeModeTab" -> {
+			        return RegistryType.CREATIVE_MODE_TAB;
+		        }
+	        }
+
+	        for (TypeMirror iface : typeElement.getInterfaces()) {
+		        Element ifaceElement = typeUtils.asElement(iface);
                 if (ifaceElement instanceof TypeElement ifaceType) {
                     String ifaceName = ifaceType.getQualifiedName().toString();
                     if (ifaceName.equals("net.minecraft.world.level.block.Block")) return RegistryType.BLOCK;
                     if (ifaceName.equals("net.minecraft.world.item.Item")) return RegistryType.ITEM;
-                    if (ifaceName.equals("v.akfz.aslib.command.IRegCommand")) return RegistryType.COMMAND;
+                    if (ifaceName.equals(ASLIB_PACKAGE + ".command.IRegCommand")) return RegistryType.COMMAND;
                 }
             }
 
             TypeMirror superclass = typeElement.getSuperclass();
-            if (superclass == null) break;
-            current = typeUtils.asElement(superclass);
+	        current = typeUtils.asElement(superclass);
         }
         return RegistryType.AUTO;
     }
@@ -195,7 +211,7 @@ public class RegistriesProcessor extends AbstractProcessor {
                 writer.write("import net.minecraft.core.registries.BuiltInRegistries;\n");
                 writer.write("import net.minecraft.resources.ResourceLocation;\n\n");
 
-                writer.write("public class " + generatedClassName + " implements v.akfz.aslib.initializer.generator.IRegistryLoader {\n\n");
+                writer.write("public class " + generatedClassName + " implements " + LOADER_INTERFACE + " {\n\n");
                 writer.write("    @Override\n");
                 writer.write("    public void run() {\n");
                 writer.write("        registerAll();\n");
@@ -203,7 +219,7 @@ public class RegistriesProcessor extends AbstractProcessor {
 
                 writer.write("    public static void registerAll() {\n");
 
-                java.util.Set<String> usedRegistries = new java.util.LinkedHashSet<>();
+                Set<String> usedRegistries = new LinkedHashSet<>();
                 for (RegistryFieldData field : fields) {
                     if (field.type != RegistryType.COMMAND && field.type != RegistryType.INSERT) {
                         if (field.type == RegistryType.CUSTOM) {
@@ -226,14 +242,14 @@ public class RegistriesProcessor extends AbstractProcessor {
                 }
                 writer.write("\n");
 
+                // Эта строка гарантирует, что статические поля (включая new KeyMapping(...)) будут инициализированы
                 writer.write("        try {\n");
                 writer.write("            Class.forName(\"" + fullRegistryClassName + "\");\n");
                 writer.write("        } catch (Throwable ignored) {}\n\n");
 
                 for (RegistryFieldData field : fields) {
                     if (field.type == RegistryType.COMMAND) {
-                        String fieldRef = field.declaringClass + "." + field.name;
-                        writer.write("        v.akfz.aslib.command.CommandHandler.addCommand(" + fieldRef + ");\n");
+                        writer.write("        " + COMMAND_HANDLER_CLASS + ".addCommand(" + field.declaringClass + "." + field.name + ");\n");
                     } else if (field.type == RegistryType.INSERT) {
                         writer.write("        " + field.insertCode + "\n");
                     }
@@ -318,6 +334,7 @@ public class RegistriesProcessor extends AbstractProcessor {
 
         boolean hasCommands = false;
         boolean hasBlocksOrItems = false;
+
         for (RegistryFieldData field : fields) {
             if (field.type == RegistryType.COMMAND) {
                 hasCommands = true;
@@ -381,12 +398,12 @@ public class RegistriesProcessor extends AbstractProcessor {
                     writer.write("    public static class ForgeBus {\n");
                     writer.write("        @SubscribeEvent\n");
                     writer.write("        public static void onRegisterCommands(RegisterCommandsEvent event) {\n");
-                    writer.write("            v.akfz.aslib.command.CommandHandler.setDispatcher(event.getDispatcher());\n");
+                    writer.write("            " + COMMAND_HANDLER_CLASS + ".setDispatcher(event.getDispatcher());\n");
 
                     for (RegistryFieldData field : fields) {
                         if (field.type == RegistryType.COMMAND) {
                             String fieldRef = field.declaringClass + "." + field.name;
-                            writer.write("            v.akfz.aslib.command.CommandHandler.addCommand(" + fieldRef + ");\n");
+                            writer.write("            " + COMMAND_HANDLER_CLASS + ".addCommand(" + fieldRef + ");\n");
                             writer.write("            " + fieldRef + ".register(event.getDispatcher());\n");
                         }
                     }
@@ -409,6 +426,7 @@ public class RegistriesProcessor extends AbstractProcessor {
 
         boolean hasCommands = false;
         boolean hasBlocksOrItems = false;
+
         for (RegistryFieldData field : fields) {
             if (field.type == RegistryType.COMMAND) {
                 hasCommands = true;
@@ -472,12 +490,12 @@ public class RegistriesProcessor extends AbstractProcessor {
                     writer.write("    public static class GameBus {\n");
                     writer.write("        @SubscribeEvent\n");
                     writer.write("        public static void onRegisterCommands(RegisterCommandsEvent event) {\n");
-                    writer.write("            v.akfz.aslib.command.CommandHandler.setDispatcher(event.getDispatcher());\n");
+                    writer.write("            " + COMMAND_HANDLER_CLASS + ".setDispatcher(event.getDispatcher());\n");
 
                     for (RegistryFieldData field : fields) {
                         if (field.type == RegistryType.COMMAND) {
                             String fieldRef = field.declaringClass + "." + field.name;
-                            writer.write("            v.akfz.aslib.command.CommandHandler.addCommand(" + fieldRef + ");\n");
+                            writer.write("            " + COMMAND_HANDLER_CLASS + ".addCommand(" + fieldRef + ");\n");
                             writer.write("            " + fieldRef + ".register(event.getDispatcher());\n");
                         }
                     }
@@ -499,7 +517,7 @@ public class RegistriesProcessor extends AbstractProcessor {
             FileObject serviceFile = filer.createResource(
                     StandardLocation.CLASS_OUTPUT,
                     "",
-                    "META-INF/services/v.akfz.aslib.initializer.generator.IRegistryLoader"
+                    "META-INF/services/" + LOADER_INTERFACE
             );
             try (Writer writer = serviceFile.openWriter()) {
                 for (String registrar : generatedRegistrars) {
@@ -552,21 +570,12 @@ public class RegistriesProcessor extends AbstractProcessor {
         };
     }
 
-    private static class RegistryFieldData {
-        final String declaringClass;
-        final String name;
-        final String id;
-        final RegistryType type;
-        final String customRegistry;
-        final String insertCode;
-
-        RegistryFieldData(String declaringClass, String name, String id, RegistryType type, String customRegistry, String insertCode) {
-            this.declaringClass = declaringClass;
-            this.name = name;
-            this.id = id;
-            this.type = type;
-            this.customRegistry = customRegistry;
-            this.insertCode = insertCode;
-        }
-    }
+    private record RegistryFieldData(
+            String declaringClass,
+            String name,
+            String id,
+            RegistryType type,
+            String customRegistry,
+            String insertCode
+    ) {}
 }
