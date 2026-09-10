@@ -59,7 +59,7 @@ public class ScrollContainer extends AbstractGroupWidget {
         }
 
         graphics.enableScissor(x, y, x + width, y + height);
-        graphics.fill(x, y, x + width, y + height, ColorUtils.rgbToArgb(255, 50, 50, 50));
+        graphics.fill(x, y, x + width, y + height, scrollbarBgColor);
 
         PoseStack poseStack = graphics.pose();
         poseStack.pushPose();
