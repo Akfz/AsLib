@@ -29,7 +29,6 @@ jobs:
         run: chmod +x gradlew
 
       - name: Determine Version from Branch Name
-        id: set_version
         run: |
           VERSION="${GITHUB_REF_NAME}-SNAPSHOT"
           echo "ASLIB_VERSION=${VERSION}" >> $GITHUB_ENV
@@ -41,18 +40,32 @@ jobs:
       - name: Build forge
         run: ./gradlew build -Pdbuild.loader=forge -Pmod_version=${{ env.ASLIB_VERSION }}
 
-      - name: Collect dev jars
+      - name: Collect fabric artifacts
         run: |
-          mkdir -p build/repo
-          find build/fabric/libs build/forge/libs \
-            -type f -name '*-dev.jar' \
-            -exec cp -v {} build/repo/ \; 2>/dev/null || true
-          echo "--- build/repo ---"
-          ls -la build/repo/
+          mkdir -p build/repo/fabric
+          find build/fabric/libs -type f -name '*.jar' -exec cp -v {} build/repo/fabric/ \;
+          echo "--- fabric ---"
+          ls -la build/repo/fabric/
 
-      - name: Deploy Maven to branch
+      - name: Collect forge artifacts
+        run: |
+          mkdir -p build/repo/forge
+          find build/forge/libs -type f -name '*.jar' -exec cp -v {} build/repo/forge/ \;
+          echo "--- forge ---"
+          ls -la build/repo/forge/
+
+      - name: Deploy fabric to maven
         uses: jamesives/github-pages-deploy-action@v4
         with:
-          folder: build/repo
+          folder: build/repo/fabric
           branch: maven
-          clean: false
+          target-folder: v/akfz/aslib-fabric/${{ env.ASLIB_VERSION }}
+          clean: true
+
+      - name: Deploy forge to maven
+        uses: jamesives/github-pages-deploy-action@v4
+        with:
+          folder: build/repo/forge
+          branch: maven
+          target-folder: v/akfz/aslib-forge/${{ env.ASLIB_VERSION }}
+          clean: true
