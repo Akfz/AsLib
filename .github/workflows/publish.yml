@@ -43,15 +43,23 @@ jobs:
       - name: Collect fabric artifacts
         run: |
           mkdir -p build/repo/fabric
-          find build/fabric/libs -type f -name '*.jar' -exec cp -v {} build/repo/fabric/ \;
-          echo "--- fabric ---"
+          SRC=$(find build/fabric/libs -type f -name '*-dev.jar' | head -n1)
+          if [ -z "$SRC" ]; then
+            echo "No dev jar found for fabric!" && exit 1
+          fi
+          DST="build/repo/fabric/aslib-fabric-${ASLIB_VERSION}.jar"
+          cp -v "$SRC" "$DST"
           ls -la build/repo/fabric/
 
       - name: Collect forge artifacts
         run: |
           mkdir -p build/repo/forge
-          find build/forge/libs -type f -name '*.jar' -exec cp -v {} build/repo/forge/ \;
-          echo "--- forge ---"
+          SRC=$(find build/forge/libs -type f -name '*-dev.jar' | head -n1)
+          if [ -z "$SRC" ]; then
+            echo "No dev jar found for forge!" && exit 1
+          fi
+          DST="build/repo/forge/aslib-forge-${ASLIB_VERSION}.jar"
+          cp -v "$SRC" "$DST"
           ls -la build/repo/forge/
 
       - name: Deploy fabric to maven
