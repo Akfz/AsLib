@@ -47,8 +47,17 @@ jobs:
           if [ -z "$SRC" ]; then
             echo "No dev jar found for fabric!" && exit 1
           fi
-          DST="build/repo/fabric/aslib-fabric-${ASLIB_VERSION}.jar"
-          cp -v "$SRC" "$DST"
+          cp -v "$SRC" "build/repo/fabric/aslib-fabric-${ASLIB_VERSION}.jar"
+          cat > "build/repo/fabric/aslib-fabric-${ASLIB_VERSION}.pom" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <project xmlns="http://maven.apache.org/POM/4.0.0">
+            <modelVersion>4.0.0</modelVersion>
+            <groupId>v.akfz</groupId>
+            <artifactId>aslib-fabric</artifactId>
+            <version>${ASLIB_VERSION}</version>
+            <packaging>jar</packaging>
+          </project>
+          EOF
           ls -la build/repo/fabric/
 
       - name: Collect forge artifacts
@@ -58,8 +67,17 @@ jobs:
           if [ -z "$SRC" ]; then
             echo "No dev jar found for forge!" && exit 1
           fi
-          DST="build/repo/forge/aslib-forge-${ASLIB_VERSION}.jar"
-          cp -v "$SRC" "$DST"
+          cp -v "$SRC" "build/repo/forge/aslib-forge-${ASLIB_VERSION}.jar"
+          cat > "build/repo/forge/aslib-forge-${ASLIB_VERSION}.pom" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <project xmlns="http://maven.apache.org/POM/4.0.0">
+            <modelVersion>4.0.0</modelVersion>
+            <groupId>v.akfz</groupId>
+            <artifactId>aslib-forge</artifactId>
+            <version>${ASLIB_VERSION}</version>
+            <packaging>jar</packaging>
+          </project>
+          EOF
           ls -la build/repo/forge/
 
       - name: Deploy fabric to maven
