@@ -6,9 +6,9 @@ import v.akfz.aslib.datagen.forge.modstoml.GenerateModsToml;
 import v.akfz.aslib.datagen.forge.modstoml.ModsTomlData;
 import v.akfz.aslib.datagen.forge.packmcmeta.GeneratePackMcmeta;
 import v.akfz.aslib.datagen.forge.packmcmeta.PackMcmetaData;
-import v.akfz.db.annotation.ProdOnly;
+import v.akfz.db.annotation.DevOnly;
 
-@ProdOnly()
+@DevOnly
 public class AsLibForgeFabricDataGen {
     public static void main(String[] args) {
         new GenerateFabricModJson(new FabricModJsonData().mixin("aslib.mixins.json").entrypoint("v.akfz.aslib.AsLib_fabric"))
