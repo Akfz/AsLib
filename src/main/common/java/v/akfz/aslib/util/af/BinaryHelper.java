@@ -5,81 +5,54 @@ import v.akfz.aslib.util.af.codec.BinaryCodec;
 import v.akfz.aslib.util.af.io.BinaryReader;
 import v.akfz.aslib.util.af.io.BinaryWriter;
 import v.akfz.aslib.util.af.registry.BinaryRegistry;
+import v.akfz.aslib.util.af.schema.Schema;
+import v.akfz.aslib.util.af.schema.SchemaInspector;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 /**
- * Binary file format (.af) — small, fast, no BS.
+ * Binary file format (.af) — schema-first, versioned, migration-aware.
  * <p>
- * Its replacement for {@link v.akfz.aslib.util.json.GsonHelper} when
- * human-readability doesn't matter and size/speed do.
- * <p>
- * Format is dead simple:
+ * Layout:
  * <pre>
- * AFB1                      // magic
- * formatVersion : varint
- * flags         : byte      // reserved (compression, dictionary, etc.)
- * compression   : byte      // 0 = none
- * className     : string    // FQCN of the top-level value's class
+ * AFB1
+ * formatVersion : varint   // = 2
+ * schemaLength  : varint
  * payloadLength : varint
- * payload       : raw codec bytes
+ * schema        : schemaLength bytes
+ * payload       : payloadLength bytes
  * </pre>
  * <p>
- * Classes don't serialize themselves — you write a {@link BinaryCodec} for each
- * type and register it in {@link BinaryRegistry}. If you don't, an
- * {@link v.akfz.aslib.util.af.codec.BinaryAutoCodec} is created on the fly.
+ * The schema describes the shape of the payload (field names, types, enum
+ * constants, custom codec classes) and is always read first. Reading a file
+ * whose schema differs from the current one migrates field-by-field: names in
+ * the file are matched against names in the class, missing fields are dropped,
+ * new fields keep their constructor defaults.
  * <p>
- * <b>Register your codec once:</b>
- * <pre>{@code
- * BinaryRegistry.register(Settings.class, new SettingsCodec());
- * }</pre>
- * <p>
- * <b>Write / read:</b>
- * <pre>{@code
- * Settings s = new Settings(2, 0.75f, "hello");
- * BinaryHelper.write(Path.of("config.af"), s);
- *
- * Settings back = BinaryHelper.read(Path.of("config.af"), Settings.class);
- * }</pre>
- * <p>
- * <b>Nested objects</b> — from inside your own codec, just call the codec for
- * the field's declared type. {@link BinaryRegistry#codecFor(Class)} gives you
- * the right one (custom if registered, {@code AutoCodec} otherwise):
- * <pre>{@code
- * public void write(BinaryWriter w, Profile p) throws IOException {
- *     w.writeString(p.nick);
- *     BinaryRegistry.codecFor(Settings.class).write(w, p.settings);
- * }
- * }</pre>
- * <p>
- * <b>Streams work too</b> if you don't want files:
- * <pre>{@code
- * ByteArrayOutputStream buf = new ByteArrayOutputStream();
- * BinaryHelper.write(buf, myThing);
- *
- * MyThing loaded = BinaryHelper.read(new ByteArrayInputStream(buf.toByteArray()), MyThing.class);
- * }</pre>
- * <p>
- * <b>Notes:</b>
- * <ul>
- *   <li>compression, fieldId, string dictionary — v2 problems, flags are reserved</li>
- *   <li>class name in the file means renaming a class breaks old files — tradeoff</li>
- *   <li>no limits on string/collection size yet — don't feed it untrusted bytes</li>
- *   <li>{@link BinaryException} is a RuntimeException on purpose, codecs shouldn't
- *    force you to wrap every line in try/catch</li>
- * </ul>
+ * Format version 1 (pre-schema) is not readable. {@link #read} throws
+ * {@link IncompatibleFormatException}; {@link #readOrNull} and
+ * {@link #readOrDefault} swallow it. {@link #readAndMigrate} backs up the old
+ * file and rewrites it with the current schema.
  */
 public final class BinaryHelper {
 
 	private static final byte[] MAGIC = {'A', 'F', 'B', '1'};
-	private static final int FORMAT_VERSION = 1;
+	private static final int FORMAT_VERSION = 2;
 
-	public static final byte COMPRESSION_NONE = 0;
+	private static final DateTimeFormatter OLD_TS =
+			DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm");
 
 	private BinaryHelper() {}
+
+	public static byte[] magic() {
+		return MAGIC.clone();
+	}
 
 	public static <T> void write(Path path, T value) throws IOException {
 		try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(path))) {
@@ -109,17 +82,40 @@ public final class BinaryHelper {
 		if (value == null) throw new NullPointerException("value");
 
 		BinaryCodec<T> codec = BinaryRegistry.codecFor(type);
-		byte[] payload = BinaryWriter.capture(codec, value);
+		Schema schema = codec.schema(type);
+
+		ByteArrayOutputStream payloadBuf = new ByteArrayOutputStream();
+		BinaryWriter pw = new BinaryWriter(payloadBuf);
+		schema.writeValue(pw, value, schema.rootIdx, true);
+		pw.flush();
+		byte[] payload = payloadBuf.toByteArray();
+
+		ByteArrayOutputStream schemaBuf = new ByteArrayOutputStream();
+		BinaryWriter sw = new BinaryWriter(schemaBuf);
+		schema.write(sw);
+		sw.flush();
+		byte[] schemaBytes = schemaBuf.toByteArray();
 
 		out.write(MAGIC);
 		BinaryWriter w = new BinaryWriter(out);
 		w.writeVarInt(FORMAT_VERSION);
-		w.writeByte(0);
-		w.writeByte(COMPRESSION_NONE);
-		w.writeString(type.getName());
+		w.writeVarInt(schemaBytes.length);
 		w.writeVarInt(payload.length);
-		out.write(payload);
+		w.writeRaw(schemaBytes);
+		w.writeRaw(payload);
 		out.flush();
+	}
+
+	public static String inspect(Path path) throws IOException {
+		return SchemaInspector.inspect(Files.readAllBytes(path));
+	}
+
+	public static String inspect(File file) throws IOException {
+		return inspect(file.toPath());
+	}
+
+	public static String inspect(InputStream in) throws IOException {
+		return SchemaInspector.inspect(in.readAllBytes());
 	}
 
 	public static <T> T read(Path path, Class<T> type) throws IOException {
@@ -132,47 +128,135 @@ public final class BinaryHelper {
 		return read(file.toPath(), type);
 	}
 
+	@Nullable
+	public static <T> T readOrNull(Path path, Class<T> type) throws IOException {
+		try {
+			return read(path, type);
+		} catch (IncompatibleFormatException e) {
+			return null;
+		}
+	}
+
+	public static <T> T readOrDefault(Path path, Class<T> type, T def) throws IOException {
+		T t = readOrNull(path, type);
+		return t != null ? t : def;
+	}
+
 	@SuppressWarnings("unchecked")
 	public static <T> T read(InputStream in, @Nullable Class<T> expected) throws IOException {
 		BinaryReader r = new BinaryReader(in);
+
 		byte[] magic = new byte[4];
 		r.readFully(magic);
-		if (!Arrays.equals(magic, MAGIC)) {
+		if (!Arrays.equals(magic, MAGIC))
 			throw new BinaryException("Not an .af file (bad magic)");
-		}
+
 		int version = r.readVarInt();
-		if (version > FORMAT_VERSION) {
+		if (version == 1)
+			throw new IncompatibleFormatException(
+					"AF format version 1 (pre-schema) is not readable by this build");
+		if (version != FORMAT_VERSION)
 			throw new BinaryException("Unsupported format version: " + version);
-		}
-		r.readByte();
-		int compression = r.readByte();
-		if (compression != COMPRESSION_NONE) {
-			throw new BinaryException("Compression not supported: " + compression);
-		}
-		String className = r.readString();
-		if (className == null) throw new BinaryException("Missing class name in payload header");
-		int payloadLength = r.readVarInt();
-		byte[] payload = new byte[payloadLength];
-		r.readFully(payload);
 
-		Class<?> type;
-		try {
-			type = Class.forName(className);
-		} catch (ClassNotFoundException e) {
-			throw new BinaryException("Class not found: " + className, e);
-		}
-		if (expected != null && !expected.isAssignableFrom(type)) {
-			throw new BinaryException("Type mismatch: expected " + expected.getName()
-					+ ", got " + type.getName());
-		}
+		int schemaLen = r.readVarInt();
+		int payloadLen = r.readVarInt();
 
-		BinaryCodec<Object> codec = BinaryRegistry.codecFor((Class<Object>) type);
-		BinaryReader pr = new BinaryReader(new ByteArrayInputStream(payload));
-		return (T) codec.read(pr);
+		byte[] schemaBytes = new byte[schemaLen];
+		r.readFully(schemaBytes);
+		byte[] payloadBytes = new byte[payloadLen];
+		r.readFully(payloadBytes);
+
+		Schema schema = Schema.read(new BinaryReader(new ByteArrayInputStream(schemaBytes)));
+
+		Object result = schema.readValue(
+				new BinaryReader(new ByteArrayInputStream(payloadBytes)),
+				schema.rootIdx,
+				expected);
+
+		if (expected != null) return expected.cast(result);
+		return (T) result;
 	}
 
 	@Nullable
 	public static <T> T read(InputStream in) throws IOException {
 		return read(in, null);
+	}
+
+	/**
+	 * Reads the file; if its schema differs from the current one, backs the
+	 * original up and rewrites it using the current schema.
+	 * <p>
+	 * Format v1 files cannot be read at all: they are backed up (or deleted)
+	 * and {@code null} is returned.
+	 *
+	 * @param saveOld keep the backup ({@code name.yyyy-MM-ddTHH-mm.old}) instead of deleting it
+	 * @return the migrated object, or {@code null} if the file was unreadable legacy
+	 */
+	public static <T> T readAndMigrate(Path path, Class<T> type, boolean saveOld) throws IOException {
+		if (!Files.exists(path)) return null;
+
+		byte[] data = Files.readAllBytes(path);
+		BinaryReader r = new BinaryReader(new ByteArrayInputStream(data));
+
+		byte[] magic = new byte[4];
+		try { r.readFully(magic); }
+		catch (EOFException e) { throw new BinaryException("Truncated .af file: " + path); }
+		if (!Arrays.equals(magic, MAGIC))
+			throw new BinaryException("Not an .af file (bad magic): " + path);
+
+		int version = r.readVarInt();
+		if (version == 1) {
+			Path backup = uniqueOldPath(path);
+			Files.move(path, backup, StandardCopyOption.REPLACE_EXISTING);
+			if (!saveOld) Files.deleteIfExists(backup);
+			return null;
+		}
+		if (version != FORMAT_VERSION)
+			throw new BinaryException("Unsupported format version: " + version);
+
+		int schemaLen = r.readVarInt();
+		int payloadLen = r.readVarInt();
+		byte[] schemaBytes = new byte[schemaLen];
+		r.readFully(schemaBytes);
+		byte[] payloadBytes = new byte[payloadLen];
+		r.readFully(payloadBytes);
+
+		Schema fileSchema = Schema.read(new BinaryReader(new ByteArrayInputStream(schemaBytes)));
+		BinaryCodec<T> codec = BinaryRegistry.codecFor(type);
+		Schema currentSchema = codec.schema(type);
+
+		Object result = fileSchema.readValue(
+				new BinaryReader(new ByteArrayInputStream(payloadBytes)),
+				fileSchema.rootIdx,
+				type);
+
+		if (fileSchema.equals(currentSchema)) {
+			return type.cast(result);
+		}
+
+		Path backup = uniqueOldPath(path);
+		Files.move(path, backup, StandardCopyOption.REPLACE_EXISTING);
+		try {
+			write(path, type, type.cast(result));
+		} catch (IOException | RuntimeException e) {
+			Files.move(backup, path, StandardCopyOption.REPLACE_EXISTING);
+			throw e;
+		} finally {
+			if (!saveOld) Files.deleteIfExists(backup);
+		}
+		return type.cast(result);
+	}
+
+	private static Path uniqueOldPath(Path path) {
+		String ts = LocalDateTime.now().format(OLD_TS);
+		String base = path.getFileName() + "." + ts;
+		Path p = path.resolveSibling(base + ".old");
+		if (!Files.exists(p)) return p;
+		int n = 2;
+		while (true) {
+			p = path.resolveSibling(base + "-" + n + ".old");
+			if (!Files.exists(p)) return p;
+			n++;
+		}
 	}
 }

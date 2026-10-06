@@ -8,6 +8,8 @@ import v.akfz.aslib.util.af.io.BinaryReader;
 import v.akfz.aslib.util.af.io.BinaryWriter;
 import v.akfz.aslib.util.af.registry.BinaryRegistry;
 import v.akfz.aslib.util.af.registry.FieldCodecRegistry;
+import v.akfz.aslib.util.af.schema.Schema;
+import v.akfz.aslib.util.af.schema.SchemaBuilder;
 
 import java.io.IOException;
 import java.lang.reflect.*;
@@ -62,6 +64,52 @@ public class BinaryAutoCodec<T> implements BinaryCodec<T> {
 	public BinaryAutoCodec(Class<T> type) {
 		this.type = Objects.requireNonNull(type, "type");
 		this.fields = collectFields(type);
+	}
+
+	@Override
+	public Schema schema(Class<T> type) {
+		return SchemaBuilder.build(type);
+	}
+
+	public static List<Field> collectSerializableFields(Class<?> cls) {
+		if (cls.isRecord()) {
+			List<Field> out = new ArrayList<>();
+			for (RecordComponent rc : cls.getRecordComponents()) {
+				try {
+					Field f = cls.getDeclaredField(rc.getName());
+					f.setAccessible(true);
+					out.add(f);
+				} catch (NoSuchFieldException e) {
+					throw new BinaryException("Record component has no backing field: "
+							+ rc.getName(), e);
+				}
+			}
+			return out;
+		}
+
+		List<Field> all = new ArrayList<>();
+		Class<?> current = cls;
+		while (current != null && current != Object.class) {
+			for (Field f : current.getDeclaredFields()) {
+				int mods = f.getModifiers();
+				if (Modifier.isStatic(mods)) continue;
+				if (Modifier.isTransient(mods)) continue;
+				if (Modifier.isFinal(mods)) continue;
+				if (f.isSynthetic()) continue;
+				f.setAccessible(true);
+				all.add(f);
+			}
+			current = current.getSuperclass();
+		}
+
+		boolean anyAnnotation = all.stream().anyMatch(f ->
+				f.isAnnotationPresent(AfInclude.class) || f.isAnnotationPresent(AfExclude.class));
+		if (anyAnnotation) {
+			all.removeIf(f ->
+					!f.isAnnotationPresent(AfInclude.class)
+							|| f.isAnnotationPresent(AfExclude.class));
+		}
+		return all;
 	}
 
 	@SuppressWarnings("unchecked")

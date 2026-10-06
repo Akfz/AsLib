@@ -4,6 +4,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -161,14 +162,14 @@ public final class EventBus {
         }
     }
 
-    private <E extends Event> EventInvoker<E> createInvoker(
-            Object listener, Method method, Class<E> eventClass) throws Throwable {
-
+    private <E extends Event> EventInvoker<E> createInvoker(Object listener, Method method, Class<E> eventClass) throws Throwable {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
-        MethodHandle bound = lookup.unreflect(method).bindTo(listener);
-        MethodHandle adapted = bound.asType(MethodType.methodType(void.class, Event.class));
-
-        return event -> {
+        MethodHandle handle = lookup.unreflect(method);
+        if (!Modifier.isStatic(method.getModifiers())) {
+            handle = handle.bindTo(listener);
+        }
+        MethodHandle adapted = handle.asType(MethodType.methodType(Void.TYPE, Event.class));
+        return (event) -> {
             try {
                 adapted.invokeExact(event);
             } catch (Throwable t) {
