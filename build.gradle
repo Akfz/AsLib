@@ -17,11 +17,6 @@ plugins {
     id 'org.parchmentmc.librarian.forgegradle' apply false
 }
 
-def activeLoader = project.findProperty('dbuild.loader')
-        ?: project.findProperty('defaultLoader')
-        ?: 'fabric'
-layout.buildDirectory.set(file("build/${activeLoader}"))
-
 def javaVer = Integer.parseInt(project.findProperty('java_version') ?: '17')
 java {
     sourceCompatibility = JavaVersion.toVersion(javaVer)
@@ -60,7 +55,7 @@ tasks.withType(ProcessResources).configureEach {
 }
 
 dbuild {
-    defaultLoader = 'forge'
+    defaultLoader = 'fabric'
 
     useLoaderSourceSet() 
     filterForeignMetadata() 

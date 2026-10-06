@@ -15,13 +15,17 @@ public class SideEnvironment {
         currentSide = isClientAvailable() ? Side.Client : Side.Server;
     }
 
+
+
     private static boolean isClientAvailable() {
-        try {
-            Class.forName("net.minecraft.client.Minecraft", false, SideEnvironment.class.getClassLoader());
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        return present("net.minecraft.client.Minecraft")
+                || present("net.minecraft.class_310")
+                || present("net.minecraft.client.main.Main");
+    }
+
+    private static boolean present(String name) {
+        try { Class.forName(name, false, SideEnvironment.class.getClassLoader()); return true; }
+        catch (Throwable t) { return false; }
     }
 
     public static Side getCurrentSide() {
