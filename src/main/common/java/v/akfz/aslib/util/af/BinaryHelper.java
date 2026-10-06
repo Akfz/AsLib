@@ -171,7 +171,8 @@ public final class BinaryHelper {
 		Object result = schema.readValue(
 				new BinaryReader(new ByteArrayInputStream(payloadBytes)),
 				schema.rootIdx,
-				expected);
+				expected,
+				true);
 
 		if (expected != null) return expected.cast(result);
 		return (T) result;
@@ -228,7 +229,8 @@ public final class BinaryHelper {
 		Object result = fileSchema.readValue(
 				new BinaryReader(new ByteArrayInputStream(payloadBytes)),
 				fileSchema.rootIdx,
-				type);
+				type,
+				true);
 
 		if (fileSchema.equals(currentSchema)) {
 			return type.cast(result);

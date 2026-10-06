@@ -8,27 +8,13 @@ import java.io.IOException;
 
 /**
  * A {@link BinaryCodec} that declares its own wire format via
- * {@link #schema(Class)} and reads/writes fields one by one, so that
- * field-level migration works <i>inside</i> the codec's type.
+ * {@link #schema(Class)} and reads/writes fields one by one, so field-level
+ * migration works inside the codec's type. A plain {@link BinaryCodec} is a
+ * {@code CUSTOM} black box instead — no per-field migration, no skipping.
  * <p>
- * Contrast with a plain {@code BinaryCodec}, whose schema defaults to a single
- * {@code CUSTOM} node: the value is a black box on the wire, and the framework
- * can neither migrate fields inside it nor skip past individual fields.
- * <p>
- * Contract:
- * <ul>
- *   <li>{@link #schema(Class)} must return a non-{@code CUSTOM} root.</li>
- *   <li>{@link #writeFields} writes exactly the fields of the schema returned
- *       by {@link #schema(Class)}, in the declared order, using
- *       {@link Schema#writeValue} for each.</li>
- *   <li>{@link #readFields} reads using the schema stored in the file. When the
- *       file schema differs from the current one, this method is responsible
- *       for the mapping: match by field name, drop unknown fields, default
- *       missing ones.</li>
- * </ul>
- * <p>
- * Direct calls to {@link #write}/{@link #read} are optional; the schema-driven
- * pipeline never uses them.
+ * Inside {@link #writeFields}/{@link #readFields} always pass
+ * {@code topLevel=false} when delegating to {@link Schema#writeValue} /
+ * {@link Schema#readValue}; only the root value is unframed.
  */
 public interface StructuredBinaryCodec<T> extends BinaryCodec<T> {
 
@@ -36,16 +22,15 @@ public interface StructuredBinaryCodec<T> extends BinaryCodec<T> {
 	Schema schema(Class<T> type);
 
 	/**
-	 * Writes {@code value} using {@code schema}. The {@code schema} argument is
-	 * exactly what {@link #schema(Class)} returned for {@code value.getClass()}.
+	 * Writes {@code value} according to {@code schema}, in the declared field
+	 * order.
 	 */
 	void writeFields(BinaryWriter writer, T value, Schema schema, int typeIdx) throws IOException;
 
 	/**
-	 * Reads a value using {@code fileSchema}, which is what was stored in the
-	 * file and may not match the current schema. {@code type} is the class the
-	 * codec is registered for, passed for logging / diagnostics only — the
-	 * return type {@code T} already guarantees compatibility.
+	 * Reads a value using {@code fileSchema}. If it differs from the current
+	 * schema, this method maps by field name: unknown fields dropped, missing
+	 * ones defaulted. {@code type} is for diagnostics only.
 	 */
 	T readFields(BinaryReader reader, Schema fileSchema, int fileTypeIdx, Class<?> type)
 			throws IOException;

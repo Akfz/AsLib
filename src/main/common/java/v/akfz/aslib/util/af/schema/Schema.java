@@ -310,7 +310,8 @@ public final class Schema {
 		}
 	}
 
-	public Object readValue(BinaryReader r, int typeIdx, Type target) throws IOException {
+	public Object readValue(BinaryReader r, int typeIdx, Type target, boolean topLevel)
+			throws IOException {
 		TypeDef def = types[typeIdx];
 		Class<?> targetClass = target != null ? rawClass(target) : null;
 
@@ -377,7 +378,7 @@ public final class Schema {
 						: resolveClass(def.elemIdx);
 				Object arr = Array.newInstance(comp, len);
 				for (int i = 0; i < len; i++) {
-					Array.set(arr, i, readValue(r, def.elemIdx, comp));
+					Array.set(arr, i, readValue(r, def.elemIdx, comp, false));
 				}
 				return arr;
 			}
@@ -388,7 +389,9 @@ public final class Schema {
 				Class<?> impl = pickImpl(targetClass, def.className, false);
 				Collection<Object> col = instantiateCollection(impl, size);
 				Type elem = target != null ? typeArg(target, 0) : null;
-				for (int i = 0; i < size; i++) col.add(readValue(r, def.elemIdx, elem));
+				for (int i = 0; i < size; i++) {
+					col.add(readValue(r, def.elemIdx, elem, false));
+				}
 				return col;
 			}
 
@@ -400,8 +403,8 @@ public final class Schema {
 				Type kt = target != null ? typeArg(target, 0) : null;
 				Type vt = target != null ? typeArg(target, 1) : null;
 				for (int i = 0; i < size; i++) {
-					Object k = readValue(r, def.keyIdx, kt);
-					Object v = readValue(r, def.valIdx, vt);
+					Object k = readValue(r, def.keyIdx, kt, false);
+					Object v = readValue(r, def.valIdx, vt, false);
 					map.put(k, v);
 				}
 				return map;
@@ -419,11 +422,14 @@ public final class Schema {
 			}
 
 			case TypeDef.K_CUSTOM: {
+				BinaryCodec<Object> codec = codecByName(def.codecClass);
+				if (topLevel) {
+					return codec.read(r);
+				}
 				if (!r.readBoolean()) return null;
 				int len = r.readVarInt();
 				byte[] buf = new byte[len];
 				r.readFully(buf);
-				BinaryCodec<Object> codec = codecByName(def.codecClass);
 				return codec.read(new BinaryReader(new ByteArrayInputStream(buf)));
 			}
 		}
@@ -453,7 +459,8 @@ public final class Schema {
 			Map<String, Object> byName = new HashMap<>();
 			for (int i = 0; i < def.fieldNames.length; i++) {
 				Type ft = findFieldType(cls, def.fieldNames[i]);
-				byName.put(def.fieldNames[i], readValue(r, def.fieldTypeIdx[i], ft));
+				byName.put(def.fieldNames[i],
+						readValue(r, def.fieldTypeIdx[i], ft, false));
 			}
 
 			Object[] args = new Object[comps.length];
@@ -486,7 +493,7 @@ public final class Schema {
 
 		for (int i = 0; i < def.fieldNames.length; i++) {
 			Type ft = findFieldType(cls, def.fieldNames[i]);
-			Object v = readValue(r, def.fieldTypeIdx[i], ft);
+			Object v = readValue(r, def.fieldTypeIdx[i], ft, false);
 			Field f = findField(cls, def.fieldNames[i]);
 			if (f == null) continue;
 			try {
