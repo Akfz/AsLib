@@ -2,6 +2,7 @@ package v.akfz.aslib.util.af.schema;
 
 import v.akfz.aslib.util.af.codec.BinaryAutoCodec;
 import v.akfz.aslib.util.af.codec.BinaryCodec;
+import v.akfz.aslib.util.af.codec.StructuredBinaryCodec;
 import v.akfz.aslib.util.af.registry.BinaryRegistry;
 import v.akfz.aslib.util.af.registry.FieldCodecRegistry;
 
@@ -15,14 +16,16 @@ import java.util.*;
  * Types are deduplicated by structural key. Recursive types are supported by
  * reserving a slot before recursing into fields.
  * <p>
- * Registered custom codecs ({@link BinaryRegistry}) become {@code CUSTOM} nodes;
- * per-field codecs ({@link FieldCodecRegistry}) do too. Everything else is
- * broken down into primitives, enums, arrays, collections, maps, and objects.
+ * A registered {@link BinaryCodec} that is <i>not</i> a
+ * {@link StructuredBinaryCodec} becomes a {@code CUSTOM} node — it owns its
+ * wire format entirely, and the framework can neither inspect nor migrate it.
+ * A {@link StructuredBinaryCodec} instead participates in the schema as a
+ * regular {@code OBJECT} node; the codec decides how to lay its fields out.
  */
 public final class SchemaBuilder {
 
-	private final Map<String, Integer> poolIdx = new HashMap<>();
 	private final List<String> pool = new ArrayList<>();
+	private final Map<String, Integer> poolIdx = new HashMap<>();
 	private final Map<Object, Integer> typeIdx = new HashMap<>();
 	private final List<TypeDef> types = new ArrayList<>();
 
@@ -41,8 +44,23 @@ public final class SchemaBuilder {
 				new TypeDef[]{TypeDef.custom(c, v, version)}, 0);
 	}
 
-	private int intern(String s) {
-		return poolIdx.computeIfAbsent(s, k -> { pool.add(k); return pool.size() - 1; });
+	/**
+	 * Registers {@code s} in the string pool so that {@link Schema#write} can
+	 * emit it as a {@code varint} index. Returns {@code s} unchanged — callers
+	 * still hand the raw string to {@link TypeDef}.
+	 */
+	private String intern(String s) {
+		if (s == null) return null;
+		poolIdx.computeIfAbsent(s, k -> {
+			pool.add(k);
+			return pool.size() - 1;
+		});
+		return s;
+	}
+
+	private String[] internAll(String[] arr) {
+		for (String s : arr) intern(s);
+		return arr;
 	}
 
 	private int resolve(Type t) {
@@ -64,7 +82,8 @@ public final class SchemaBuilder {
 			for (Type a : pt.getActualTypeArguments()) args.add(normalizeKey(a));
 			return new ParamKey((Class<?>) pt.getRawType(), args);
 		}
-		if (t instanceof GenericArrayType gat) return new ArrayKey(normalizeKey(gat.getGenericComponentType()));
+		if (t instanceof GenericArrayType gat)
+			return new ArrayKey(normalizeKey(gat.getGenericComponentType()));
 		if (t instanceof TypeVariable<?> || t instanceof WildcardType) return Object.class;
 		return t;
 	}
@@ -74,7 +93,12 @@ public final class SchemaBuilder {
 
 		if (BinaryRegistry.isRegistered(raw)) {
 			BinaryCodec<?> codec = BinaryRegistry.get(raw);
-			return TypeDef.custom(codec.getClass().getName(), raw.getName(), 0);
+			if (!(codec instanceof StructuredBinaryCodec<?>)) {
+				return TypeDef.custom(
+						intern(codec.getClass().getName()),
+						intern(raw.getName()),
+						0);
+			}
 		}
 
 		if (raw == boolean.class)  return TypeDef.primitive(TypeDef.K_BOOLEAN);
@@ -86,13 +110,13 @@ public final class SchemaBuilder {
 		if (raw == double.class)   return TypeDef.primitive(TypeDef.K_DOUBLE);
 		if (raw == char.class)     return TypeDef.primitive(TypeDef.K_CHAR);
 
-		if (raw == Boolean.class)  return TypeDef.primitive(TypeDef.K_BOOLEAN_BOX);
-		if (raw == Byte.class)     return TypeDef.primitive(TypeDef.K_BYTE_BOX);
-		if (raw == Short.class)    return TypeDef.primitive(TypeDef.K_SHORT_BOX);
-		if (raw == Integer.class)  return TypeDef.primitive(TypeDef.K_INT_BOX);
-		if (raw == Long.class)     return TypeDef.primitive(TypeDef.K_LONG_BOX);
-		if (raw == Float.class)    return TypeDef.primitive(TypeDef.K_FLOAT_BOX);
-		if (raw == Double.class)   return TypeDef.primitive(TypeDef.K_DOUBLE_BOX);
+		if (raw == Boolean.class)   return TypeDef.primitive(TypeDef.K_BOOLEAN_BOX);
+		if (raw == Byte.class)      return TypeDef.primitive(TypeDef.K_BYTE_BOX);
+		if (raw == Short.class)     return TypeDef.primitive(TypeDef.K_SHORT_BOX);
+		if (raw == Integer.class)   return TypeDef.primitive(TypeDef.K_INT_BOX);
+		if (raw == Long.class)      return TypeDef.primitive(TypeDef.K_LONG_BOX);
+		if (raw == Float.class)     return TypeDef.primitive(TypeDef.K_FLOAT_BOX);
+		if (raw == Double.class)    return TypeDef.primitive(TypeDef.K_DOUBLE_BOX);
 		if (raw == Character.class) return TypeDef.primitive(TypeDef.K_CHAR_BOX);
 
 		if (raw == String.class)   return TypeDef.primitive(TypeDef.K_STRING);
@@ -103,7 +127,7 @@ public final class SchemaBuilder {
 			Object[] cs = raw.getEnumConstants();
 			String[] names = new String[cs.length];
 			for (int i = 0; i < cs.length; i++) names[i] = ((Enum<?>) cs[i]).name();
-			return TypeDef.enumType(raw.getName(), names);
+			return TypeDef.enumType(intern(raw.getName()), internAll(names));
 		}
 
 		if (raw.isArray()) {
@@ -117,7 +141,7 @@ public final class SchemaBuilder {
 			Class<?> impl = raw;
 			if (impl.isInterface() || Modifier.isAbstract(impl.getModifiers()))
 				impl = Set.class.isAssignableFrom(raw) ? HashSet.class : ArrayList.class;
-			return TypeDef.collection(impl.getName(), resolve(elem));
+			return TypeDef.collection(intern(impl.getName()), resolve(elem));
 		}
 
 		if (Map.class.isAssignableFrom(raw)) {
@@ -125,7 +149,7 @@ public final class SchemaBuilder {
 			Class<?> impl = raw;
 			if (impl.isInterface() || Modifier.isAbstract(impl.getModifiers()))
 				impl = SortedMap.class.isAssignableFrom(raw) ? TreeMap.class : LinkedHashMap.class;
-			return TypeDef.map(impl.getName(), resolve(k), resolve(v));
+			return TypeDef.map(intern(impl.getName()), resolve(k), resolve(v));
 		}
 
 		return buildObject(raw);
@@ -137,12 +161,12 @@ public final class SchemaBuilder {
 		int[] ids = new int[fields.size()];
 		for (int i = 0; i < fields.size(); i++) {
 			Field f = fields.get(i);
-			names[i] = f.getName();
+			names[i] = intern(f.getName());
 			BinaryCodec<?> fc = FieldCodecRegistry.get(f);
 			if (fc != null) ids[i] = addCustom(fc.getClass(), f.getType());
 			else            ids[i] = resolve(f.getGenericType());
 		}
-		return TypeDef.object(cls.getName(), names, ids);
+		return TypeDef.object(intern(cls.getName()), names, ids);
 	}
 
 	private int addCustom(Class<?> codecCls, Class<?> valueCls) {
@@ -150,7 +174,10 @@ public final class SchemaBuilder {
 		Integer existing = typeIdx.get(key);
 		if (existing != null) return existing;
 		int idx = types.size();
-		types.add(TypeDef.custom(codecCls.getName(), valueCls.getName(), 0));
+		types.add(TypeDef.custom(
+				intern(codecCls.getName()),
+				intern(valueCls.getName()),
+				0));
 		typeIdx.put(key, idx);
 		return idx;
 	}

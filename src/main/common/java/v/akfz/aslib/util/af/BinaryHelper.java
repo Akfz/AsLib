@@ -43,7 +43,7 @@ import java.util.Arrays;
 public final class BinaryHelper {
 
 	private static final byte[] MAGIC = {'A', 'F', 'B', '1'};
-	private static final int FORMAT_VERSION = 2;
+	public static final int FORMAT_VERSION = 2;
 
 	private static final DateTimeFormatter OLD_TS =
 			DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm");

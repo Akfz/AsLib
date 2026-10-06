@@ -39,37 +39,31 @@ public final class Schema {
 	public Class<?> resolveClass(int idx) {
 		TypeDef def = types[idx];
 		try {
-			switch (def.kind) {
-				case TypeDef.K_BOOLEAN: return boolean.class;
-				case TypeDef.K_BYTE:    return byte.class;
-				case TypeDef.K_SHORT:   return short.class;
-				case TypeDef.K_INT:     return int.class;
-				case TypeDef.K_LONG:    return long.class;
-				case TypeDef.K_FLOAT:   return float.class;
-				case TypeDef.K_DOUBLE:  return double.class;
-				case TypeDef.K_CHAR:    return char.class;
-				case TypeDef.K_BOOLEAN_BOX: return Boolean.class;
-				case TypeDef.K_BYTE_BOX:    return Byte.class;
-				case TypeDef.K_SHORT_BOX:   return Short.class;
-				case TypeDef.K_INT_BOX:     return Integer.class;
-				case TypeDef.K_LONG_BOX:    return Long.class;
-				case TypeDef.K_FLOAT_BOX:   return Float.class;
-				case TypeDef.K_DOUBLE_BOX:  return Double.class;
-				case TypeDef.K_CHAR_BOX:    return Character.class;
-				case TypeDef.K_STRING: return String.class;
-				case TypeDef.K_UUID:   return UUID.class;
-				case TypeDef.K_BYTES:  return byte[].class;
-				case TypeDef.K_ENUM:
-				case TypeDef.K_OBJECT:
-				case TypeDef.K_COLLECTION:
-				case TypeDef.K_MAP:
-				case TypeDef.K_CUSTOM:
-					return Class.forName(def.className);
-				case TypeDef.K_ARRAY:
-					return Array.newInstance(resolveClass(def.elemIdx), 0).getClass();
-				default:
-					return Object.class;
-			}
+			return switch (def.kind) {
+				case TypeDef.K_BOOLEAN -> boolean.class;
+				case TypeDef.K_BYTE -> byte.class;
+				case TypeDef.K_SHORT -> short.class;
+				case TypeDef.K_INT -> int.class;
+				case TypeDef.K_LONG -> long.class;
+				case TypeDef.K_FLOAT -> float.class;
+				case TypeDef.K_DOUBLE -> double.class;
+				case TypeDef.K_CHAR -> char.class;
+				case TypeDef.K_BOOLEAN_BOX -> Boolean.class;
+				case TypeDef.K_BYTE_BOX -> Byte.class;
+				case TypeDef.K_SHORT_BOX -> Short.class;
+				case TypeDef.K_INT_BOX -> Integer.class;
+				case TypeDef.K_LONG_BOX -> Long.class;
+				case TypeDef.K_FLOAT_BOX -> Float.class;
+				case TypeDef.K_DOUBLE_BOX -> Double.class;
+				case TypeDef.K_CHAR_BOX -> Character.class;
+				case TypeDef.K_STRING -> String.class;
+				case TypeDef.K_UUID -> UUID.class;
+				case TypeDef.K_BYTES -> byte[].class;
+				case TypeDef.K_ENUM, TypeDef.K_OBJECT, TypeDef.K_COLLECTION,
+				     TypeDef.K_MAP, TypeDef.K_CUSTOM -> Class.forName(def.className);
+				case TypeDef.K_ARRAY -> Array.newInstance(resolveClass(def.elemIdx), 0).getClass();
+				default -> Object.class;
+			};
 		} catch (ClassNotFoundException e) {
 			throw new BinaryException("Class not found: " + def.className, e);
 		}
@@ -178,6 +172,7 @@ public final class Schema {
 		}
 	}
 
+	@SuppressWarnings({"unchecked","rawtypes"})
 	public void writeValue(BinaryWriter w, Object value, int typeIdx, boolean topLevel) throws IOException {
 		TypeDef def = types[typeIdx];
 
@@ -267,16 +262,14 @@ public final class Schema {
 			case TypeDef.K_OBJECT: {
 				if (value == null) { w.writeBoolean(false); return; }
 				w.writeBoolean(true);
-				Class<?> cls = value.getClass();
-				BinaryCodec<?> registered = BinaryRegistry.get(cls);
+				Class<?> schemaCls = classForName(def.className);
+				BinaryCodec<?> registered = BinaryRegistry.get(schemaCls);
 				if (registered instanceof StructuredBinaryCodec<?> sbc) {
-					@SuppressWarnings({"unchecked", "rawtypes"})
-					StructuredBinaryCodec<Object> s = (StructuredBinaryCodec<Object>) sbc;
-					s.writeFields(w, value, this, typeIdx);
+					((StructuredBinaryCodec) sbc).writeFields(w, value, this, typeIdx);
 				} else {
-					boolean rec = cls.isRecord();
+					boolean rec = schemaCls.isRecord();
 					for (int i = 0; i < def.fieldNames.length; i++) {
-						Object v = readFieldValue(value, cls, def.fieldNames[i], rec);
+						Object v = readFieldValue(value, schemaCls, def.fieldNames[i], rec);
 						writeValue(w, v, def.fieldTypeIdx[i], false);
 					}
 				}
@@ -362,18 +355,25 @@ public final class Schema {
 				if (!r.readBoolean()) return null;
 				int ord = r.readVarInt();
 				if (ord < 0 || ord >= def.enumConstants.length)
-					throw new BinaryException("Bad enum ordinal " + ord);
+					throw new BinaryException("Bad enum ordinal " + ord
+							+ " for " + def.className);
 				String name = def.enumConstants[ord];
 				Class<?> enumCls = targetClass != null ? targetClass : classForName(def.className);
-				@SuppressWarnings({"unchecked", "rawtypes"})
-				Object v = Enum.valueOf((Class<? extends Enum>) enumCls, name);
-				return v;
+				try {
+					@SuppressWarnings({"unchecked", "rawtypes"})
+					Object v = Enum.valueOf((Class<? extends Enum>) enumCls, name);
+					return v;
+				} catch (IllegalArgumentException e) {
+					throw new BinaryException("Enum " + enumCls.getName()
+							+ " has no constant named " + name, e);
+				}
 			}
 
 			case TypeDef.K_ARRAY: {
 				if (!r.readBoolean()) return null;
 				int len = r.readVarInt();
-				Class<?> comp = targetClass != null ? targetClass.getComponentType()
+				Class<?> comp = targetClass != null && targetClass.isArray()
+						? targetClass.getComponentType()
 						: resolveClass(def.elemIdx);
 				Object arr = Array.newInstance(comp, len);
 				for (int i = 0; i < len; i++) {
@@ -409,14 +409,13 @@ public final class Schema {
 
 			case TypeDef.K_OBJECT: {
 				if (!r.readBoolean()) return null;
-				Class<?> cls = targetClass != null ? targetClass : classForName(def.className);
-				BinaryCodec<?> registered = BinaryRegistry.get(cls);
+				Class<?> schemaCls = classForName(def.className);
+				BinaryCodec<?> registered = BinaryRegistry.get(schemaCls);
 				if (registered instanceof StructuredBinaryCodec<?> sbc) {
-					@SuppressWarnings({"unchecked", "rawtypes"})
-					StructuredBinaryCodec<Object> s = (StructuredBinaryCodec<Object>) sbc;
-					return s.readFields(r, this, typeIdx, cls);
+					return sbc.readFields(r, this, typeIdx, schemaCls);
 				}
-				return readObject(r, def, cls);
+				Class<?> instanceCls = targetClass != null ? targetClass : schemaCls;
+				return readObject(r, def, instanceCls);
 			}
 
 			case TypeDef.K_CUSTOM: {
@@ -460,15 +459,17 @@ public final class Schema {
 			Object[] args = new Object[comps.length];
 			for (int i = 0; i < comps.length; i++) {
 				RecordComponent rc = comps[i];
-				args[i] = byName.containsKey(rc.getName())
-						? byName.get(rc.getName())
-						: defaultValue(rc.getType());
+				Class<?> pt = paramTypes[i];
+				Object v = byName.get(rc.getName());
+				args[i] = (v != null && isAssignableBoxed(pt, v.getClass()))
+						? v
+						: defaultValue(pt);
 			}
 			try {
 				Constructor<?> ctor = cls.getDeclaredConstructor(paramTypes);
 				ctor.setAccessible(true);
 				return ctor.newInstance(args);
-			} catch (ReflectiveOperationException e) {
+			} catch (ReflectiveOperationException | IllegalArgumentException e) {
 				throw new BinaryException("Cannot construct record " + cls.getName(), e);
 			}
 		}
@@ -497,8 +498,7 @@ public final class Schema {
 		return instance;
 	}
 
-	private static Object readFieldValue(Object instance, Class<?> cls, String name, boolean isRecord)
-			throws IOException {
+	private static Object readFieldValue(Object instance, Class<?> cls, String name, boolean isRecord) {
 		if (isRecord) {
 			for (RecordComponent rc : cls.getRecordComponents()) {
 				if (rc.getName().equals(name)) {
@@ -558,10 +558,11 @@ public final class Schema {
 	private static Class<?> pickImpl(Class<?> target, String fromSchema, boolean isMap) {
 		if (target != null && !target.isInterface() && !Modifier.isAbstract(target.getModifiers()))
 			return target;
-		Class<?> impl = classForName(fromSchema);
-		if (!impl.isInterface() && !Modifier.isAbstract(impl.getModifiers())) return impl;
-		if (isMap) return SortedMap.class.isAssignableFrom(impl) ? TreeMap.class : LinkedHashMap.class;
-		return Set.class.isAssignableFrom(impl) ? HashSet.class : ArrayList.class;
+		Class<?> impl = fromSchema != null ? classForName(fromSchema) : null;
+		if (impl != null && !impl.isInterface() && !Modifier.isAbstract(impl.getModifiers()))
+			return impl;
+		if (isMap) return LinkedHashMap.class;
+		return ArrayList.class;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -595,6 +596,23 @@ public final class Schema {
 		if (cls == double.class) return 0d;
 		if (cls == char.class) return '\0';
 		return null;
+	}
+
+	private static boolean isAssignableBoxed(Class<?> target, Class<?> actual) {
+		if (target.isPrimitive()) return wrap(target).isAssignableFrom(actual);
+		return target.isAssignableFrom(actual);
+	}
+
+	private static Class<?> wrap(Class<?> p) {
+		if (p == boolean.class) return Boolean.class;
+		if (p == byte.class)    return Byte.class;
+		if (p == short.class)   return Short.class;
+		if (p == int.class)     return Integer.class;
+		if (p == long.class)    return Long.class;
+		if (p == float.class)   return Float.class;
+		if (p == double.class)  return Double.class;
+		if (p == char.class)    return Character.class;
+		return p;
 	}
 
 	private static final Map<String, BinaryCodec<?>> CODEC_CACHE = new ConcurrentHashMap<>();

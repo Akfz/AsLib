@@ -20,7 +20,7 @@ import java.io.IOException;
  *   <li>{@link #schema(Class)} must return a non-{@code CUSTOM} root.</li>
  *   <li>{@link #writeFields} writes exactly the fields of the schema returned
  *       by {@link #schema(Class)}, in the declared order, using
- *       {@link Schema#writeValue} for each. Not doing so corrupts migration.</li>
+ *       {@link Schema#writeValue} for each.</li>
  *   <li>{@link #readFields} reads using the schema stored in the file. When the
  *       file schema differs from the current one, this method is responsible
  *       for the mapping: match by field name, drop unknown fields, default
@@ -43,9 +43,10 @@ public interface StructuredBinaryCodec<T> extends BinaryCodec<T> {
 
 	/**
 	 * Reads a value using {@code fileSchema}, which is what was stored in the
-	 * file and may not match the current schema. Returns an instance of
-	 * {@code type}.
+	 * file and may not match the current schema. {@code type} is the class the
+	 * codec is registered for, passed for logging / diagnostics only — the
+	 * return type {@code T} already guarantees compatibility.
 	 */
-	T readFields(BinaryReader reader, Schema fileSchema, int fileTypeIdx, Class<T> type)
+	T readFields(BinaryReader reader, Schema fileSchema, int fileTypeIdx, Class<?> type)
 			throws IOException;
 }

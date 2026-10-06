@@ -23,14 +23,14 @@ public final class SchemaInspector {
 		byte[] magic = new byte[4];
 		try { r.readFully(magic); }
 		catch (IOException e) { throw new BinaryException("Truncated .af file"); }
-		if (!Arrays.equals(magic,BinaryHelper.magic()))
+		if (!Arrays.equals(magic, BinaryHelper.magic()))
 			throw new BinaryException("Not an .af file (bad magic)");
 
 		int version = r.readVarInt();
 		if (version == 1) {
 			return "AFB1 version=1 (pre-schema; not inspectable)\n";
 		}
-		if (version != 2)
+		if (version != BinaryHelper.FORMAT_VERSION)
 			throw new BinaryException("Unsupported format version: " + version);
 
 		int schemaLen = r.readVarInt();
